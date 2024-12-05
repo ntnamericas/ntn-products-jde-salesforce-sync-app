@@ -90,8 +90,8 @@ LEFT JOIN IMDRAW_IMSRTX_IBLTLV T16
 LEFT JOIN IMLITM_IMSRTX_IBLTLV T17 
     ON TRIM(T17.IMLITM) = TRIM(T2.IMLITM)
  
-WHERE ((T2.IMUPMJ >= $(vars.productsJobRun.date) AND T2.IMTDAY >= $(vars.previousProductsJobRun.time)) OR (T12.DRUPMJ >= $(vars.productsJobRun.date) AND T12.DRUPMT >= $(vars.previousProductsJobRun.time)))
- --WHERE (TRIM(T2.IMLITM) = '6203C3[TB00]') --OR ((T2.IMLITM) = 'TOOL FT20-YOKE35') OR (TRIM(T2.IMLITM) = 'LUB-SMRTCONTROLUNIT') OR (TRIM(T2.IMLITM) = 'TLS-MECHPULLER2/3-270')
+WHERE ((T2.IMUPMJ >= $(vars.productsJobRun.date) AND T2.IMTDAY >= $(vars.previousProductsJobRun.time)) OR (T2.IBUPMJ >= $(vars.productsJobRun.date) AND T2.IBTDAY >= $(vars.previousProductsJobRun.time)) OR (T12.DRUPMJ >= $(vars.productsJobRun.date) AND T12.DRUPMT >= $(vars.previousProductsJobRun.time)))
+ --WHERE (TRIM(T2.IMLITM) = '672[HB00]') --OR ((T2.IMLITM) = 'TOOL FT20-YOKE35') OR (TRIM(T2.IMLITM) = 'LUB-SMRTCONTROLUNIT') OR (TRIM(T2.IMLITM) = 'TLS-MECHPULLER2/3-270')
 GROUP BY
     T1.IBPRP4, T1.IBLITM, T1.IBSTKT, T1.IBSRP4, T1.IBMCU, T1.IBSRP2, T1.IBSRP1, T2.IMLITM,
     T2.IMSRTX, T2.IMDRAW, T3.DRDLO1, T12.DRKY, T12.DRDL01, T13.DRKY, T13.DRDL01,
