@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<!-- [STUDIO:"eplt-min-max-flow"]<flow name="eplt-min-max-flow"
+		doc:id="ac8c8c25-e0df-466a-ab5a-ead4818c2906" tracking:enable-default-events="true">
+		<scheduler doc:name="eplt-scheduler"
+			doc:id="40ddd6c0-3868-4e2d-9a3c-b9c508d1344f">
+			<scheduling-strategy>
+				<fixed-frequency frequency="${scheduler.frequency}"
+					timeUnit="DAYS" startDelay="${scheduler.startDelay}" />
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="jobRunTime"
+			doc:id="e0c58592-eb8d-4d79-b6b7-c45ae7a93e91">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable resource="dwl/vars-epltjobRun.dwl"
+					variableName="epltjobRun" />
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="jobRun logger"
+			doc:id="f4308889-37c0-40d5-8dcd-3807b4b14d8c"
+			message="#[vars.epltjobRun&#93;" category="${log.category}" />
+		<os:retrieve doc:name="retrievePreviousJobRun"
+			doc:id="9a1b21a1-4002-4b9d-a133-68cf0b335cae"
+			key="previousepltJobRun" target="previousepltJobRun"
+			objectStore="Object_store_Previous_eplt_Job_Run">
+			<os:default-value><![CDATA[#[vars.epltjobRun&#93;&#93;&#93;></os:default-value>
+		</os:retrieve>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="ec351cde-888f-4afb-aaa0-17b804ff7188"
+			message='#["Calling jde-to-sf-app-sub-flow"&#93;' category="${log.category}" />
+		<flow-ref doc:name="estimated-lead-time-min-maxFlow"
+			doc:id="a2951d4c-1c36-4da5-9a8a-10287dcf1163"
+			name="estimated-lead-time-min-max-subflow" />
+		<os:store doc:name="Store current job run details"
+			doc:id="60b0a7c0-d2d7-4396-9748-5d8deadf725d" key="previousepltJobRun"
+			objectStore="Object_store_Previous_eplt_Job_Run">
+			<os:value><![CDATA[#[vars.epltjobRun&#93;&#93;&#93;></os:value>
+		</os:store>
+	</flow> [STUDIO] -->
+	<!-- [STUDIO:"estimated-lead-time-min-max-subflow"]<sub-flow name="estimated-lead-time-min-max-subflow" doc:id="c6f64cbe-6586-4689-911f-80e608f56f58">
+		<ee:transform doc:name="Transform Message" doc:id="14a3fcd2-1a9e-42e3-8e81-11b8c1576ac9">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+&#45;&#45;-
+readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dwl","text/plain")&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="525c42fe-7d1d-46bf-a4ff-8c3b123a74ef" expression="#[payload&#93;" />
+		<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="Oracle_JDE_Database_Config">
+			<db:sql><![CDATA[#[payload&#93;&#93;&#93;></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
+			<ee:message>
+				<ee:set-payload resource="dwl/estimated-lead-time-min-max-subflow.xml.dwl" />
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="estimated-production-lead-time-subflow" doc:id="876bb4f0-4b1c-4f65-83c8-88970449a665" name="estimated-production-lead-time-min-max-choice-subflow" />
+		<logger level="INFO" doc:name="Logger" doc:id="8d203da8-7a0e-4a06-a7a3-7b2bb9b77f36" message="************** ESTIMATED PRODUCT LEAD TIME MAX MIN Processing Completed Successfully ************************" />
+	</sub-flow> [STUDIO] -->
+	<!-- [STUDIO:"estimated-production-lead-time-min-max-choice-subflow"]<sub-flow name="estimated-production-lead-time-min-max-choice-subflow" doc:id="f19e18ce-ead0-4fd3-a9c4-66f52c8330be" >
+		<choice doc:name="Choice" doc:id="4bf4e07a-2bf5-40cd-a3d1-d501a0a18743" >
+			<when expression="#[payload !=[&#93;&#93;">
+				<scatter-gather doc:name="Scatter-Gather" doc:id="19428e76-6b5d-4624-b32e-99b06b640b48" >
+					<route >
+						<batch:job jobName="elpt-base-part-batch-job" doc:id="822de1d2-9a46-47e0-8474-0e1adc89ab42" >
+							<batch:process-records >
+								<batch:step name="base-batch-step" doc:id="2d9cd116-d822-41c9-976b-52adc04bcb6a" acceptExpression='#[payload.drawExternalID != null  and payload.drawExternalID !="" and payload.drawExternalID != [&#93; and payload.drawExternalID != [""&#93;  &#93;'>
+									<ee:transform doc:name="store the externalId" doc:id="1d43370c-8027-4ac4-82e6-5659fefe32b6">
+										<ee:message />
+										<ee:variables>
+											<ee:set-variable variableName="drawExternalId" ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+									<ee:transform doc:name="Transform Message" doc:id="0d1b6513-2255-4b64-a5b6-2a809dcc7f1f">
+					<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+&#45;&#45;-
+readUrl("classpath://queryScript/sqlScript-eplt-imdraw-$(p('mule.env')).dwl","text/plain")&#93;&#93;></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+					</ee:variables>
+				</ee:transform>
+									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="031fa04b-48e7-4d38-b2e6-01d1c4ecefef" expression="#[payload&#93;" />
+									<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="Oracle_JDE_Database_Config">
+					<db:sql><![CDATA[#[payload&#93;&#93;&#93;></db:sql>
+				</db:select>
+									<ee:transform doc:name="Transform Message" doc:id="f916d3d3-6fd9-4e69-83f3-bbb30cca03d3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+[{
+    External_ID__c : vars.drawExternalId.drawExternalID,
+    Estimated_Production_Lead_Time_Min__c : (trim(payload.MIN_IBLTLV_DRAW) default "0"),
+    Estimated_Production_Lead_Time_Max__c : (trim(payload.MAX_IBLTLV_DRAW) default "0")
+}&#93;&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+									<logger level="INFO" doc:name="Logger" doc:id="19e6441f-6c8d-4135-9ae9-0fc80c1b25ef" message="#[payload&#93;" />
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="73b1b546-409d-4fe5-b967-54d63d4878ba" size="100">
+										<ee:transform doc:name="Transform Message" doc:id="e2307687-28f9-4202-9e08-73612f323821" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+										<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
+									</batch:aggregator>
+								</batch:step>
+							</batch:process-records>
+							<batch:on-complete >
+								<logger level="INFO" doc:name="Logger" doc:id="deb59088-3c46-49a6-802e-fa03732230ee" message='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{"operationName" : "ESTIMATED LEAD TIME DRAW BATCH RESPONSE : \n"} ++ payload&#93;'/>
+							</batch:on-complete>
+						</batch:job>
+					</route>
+					<route >
+						<batch:job jobName="eplt-indusry-part-batch-job" doc:id="3c02836a-380e-46f8-bf7c-80fe6eca610c" >
+							<batch:process-records >
+								<batch:step name="industry-batch-step" doc:id="2af4d222-0ae0-44a4-b733-5b510514fce4" acceptExpression='#[payload.srtxExternalID != null  and payload.srtxExternalID !="" and payload.srtxExternalID != [&#93; and payload.srtxExternalID != [""&#93; &#93;'>
+									<ee:transform doc:name="store the externalId" doc:id="4dfa9e41-38b2-48d3-85fa-4f434dfe1967">
+										<ee:message />
+										<ee:variables>
+											<ee:set-variable variableName="strxExternalId"><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+									<ee:transform doc:name="Transform Message" doc:id="cd8c5539-5dbd-4b0e-8d9d-47d73c2aeda5">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+&#45;&#45;-
+readUrl("classpath://queryScript/sqlScript-eplt-imsrtx-$(p('mule.env')).dwl","text/plain")&#93;&#93;></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="3f6a677a-1d35-4e14-b01c-beabac161a91" expression="#[payload&#93;" />
+									<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="Oracle_JDE_Database_Config">
+					<db:sql><![CDATA[#[payload&#93;&#93;&#93;></db:sql>
+				</db:select>
+									<ee:transform doc:name="Transform Message" doc:id="c2110ead-8fe3-45a2-b5ad-fa0ef67195cd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+[{
+    External_ID__c : vars.strxExternalId.srtxExternalID,
+    Estimated_Production_Lead_Time_Max__c : (trim(payload.MAX_IBLTLV_SRTX) default "0"),
+    Estimated_Production_Lead_Time_Min__c : (trim(payload.MIN_IBLTLV_SRTX) default "0")
+}&#93;&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+									<logger level="INFO" doc:name="Logger" doc:id="5e3aa011-a177-41bd-8a0a-07ad8c5e9faa" message="#[payload&#93;" />
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="86cc34d3-07f4-4f38-92de-15e88c64194c" size="100">
+										<ee:transform doc:name="Transform Message" doc:id="b5b09927-4336-408b-a0a0-736221433b1e" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+										<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+									</batch:aggregator>
+								</batch:step>
+							</batch:process-records>
+							<batch:on-complete >
+								<logger level="INFO" doc:name="Logger" doc:id="eddac88f-c452-4c95-925a-8fb436764e4d" message='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{"operationName" : "ESTIMATED LEAD TIME SRTX BATCH RESPONSE : \n"} ++ payload&#93;'/>
+							</batch:on-complete>
+						</batch:job>
+					</route>
+				</scatter-gather>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="001f28cd-9fb1-429d-8c89-6d60300714a9" message="NOTHING TO UPDATE IN THIS RUN"/>
+			</otherwise>
+		</choice>
+	</sub-flow> [STUDIO] -->
+</mule>

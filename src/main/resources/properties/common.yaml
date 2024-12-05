@@ -1,0 +1,79 @@
+app:
+  name:    ${project.artifactId} # replaced through Maven resource filtering
+  version: ${project.version}    # replaced through Maven resource filtering
+
+api:
+  context:      "${api.context}"    # replaced through Maven resource filtering
+  layer:        "${api.layer}"    # replaced through Maven resource filtering
+  groupId:      "${api.groupId}"    # replaced through Maven resource filtering
+  artifactId:   "${api.artifactId}" # replaced through Maven resource filtering
+  version:      "${api.version}"    # replaced through Maven resource filtering
+  spec: "resource::${api.groupId}:${api.artifactId}:${api.version}:raml:zip:${api.artifactId}.raml" # replaced through Maven resource filtering
+  majorVersion: "v1"
+
+os.ttl: "3"
+
+sf:
+  object: "Product2"
+  extId: "External_ID__c"
+
+
+log.level: "INFO"
+log.category: "TRACKING"
+
+waitArgs: "10000"
+response.timeout: "15000"
+batch.size : "100"
+
+max:
+  retries: "3"
+  frequency: "6000"
+  
+mock.https.request:
+  basepath: "/get"
+  host: "postman-echo.com"
+  port: "443"
+
+
+mule.httpResponseTimeout: "90000000"
+
+healthPath: "/health"
+
+retry:
+ frequency: "3000"
+ attempts: "3"
+ 
+project.version: "v1" 
+ 
+
+  
+deps.https.listener:
+  attemptMillis: "2000"
+  frequency: "2"
+  timeout: "30000"
+  
+timeout:
+  connection: "1200000"
+deps.health:
+  milliesBetweenRetries: "1000"
+  maxRetries: "2"
+  timeoutMillis: "1000" 
+
+reconnect:
+  frequency: "120000"
+  attempts: "5"
+    
+http:
+  reconnectionFrequency: "3000"
+  reconnectionAttempts: "5"
+  retryCount: "5"
+  retryFrequency: "3000"
+  
+scheduler:
+  frequency: "30"
+  startDelay: "0"
+
+smtp:
+  host: "smtp.office365.com"
+  port: "25"  
+  to: "suman.chatterjee@prowesssoft.com"

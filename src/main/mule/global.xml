@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd">
+	<db:config name="Oracle_JDE_Database_Config"
+		doc:name="Database Config"
+		doc:id="d86fca43-10bf-4265-b8f2-2e9b8812fff3">
+		<db:oracle-connection host="${db.host}"
+			user="${secure::db.user}" password="${secure::db.password}"
+			serviceName="${db.svc}" port="${db.port}">
+			<reconnection failsDeployment="true">
+				<reconnect-forever />
+			</reconnection>
+		</db:oracle-connection>
+	</db:config>
+	<os:object-store
+		name="Object_store_Previous_eplt_Job_Run" doc:name="Object store"
+		doc:id="98455782-5b25-409a-8b70-ef3392be003a" entryTtl="3"
+		entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
+		config-ref="ObjectStore_Config" />
+	<os:object-store
+		name="Object_store_Previous_Products_Job_Run" doc:name="Object store"
+		doc:id="79335253-ffbe-49b5-97b6-3eea6df57e69" entryTtl="${os.ttl}"
+		entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
+		config-ref="ObjectStore_Config" />
+
+	<salesforce:sfdc-config name="Salesforce_Config"
+		doc:name="Salesforce Config"
+		doc:id="33ac0030-519e-4c37-b4a9-6120a30fdc04">
+		<salesforce:basic-connection
+			username="${sf.user}" password="${secure::sf.password}"
+			securityToken="${secure::sf.token}" url="${sf.authURL}" />
+	</salesforce:sfdc-config>
+	<os:config name="ObjectStore_Config"
+		doc:name="ObjectStore Config"
+		doc:id="14f6a46a-cf69-4165-aa3e-6ebd7307d476">
+		<os:connection />
+	</os:config>
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="ef68a602-ebc0-4b3f-a371-4e5413002b26"
+		file="properties/${mule.env}-properties.yaml" />
+	<secure-properties:config
+		name="Secure_Properties_Config" doc:name="Secure Properties Config"
+		doc:id="f75d373c-a5e7-4ab5-9577-5d75ba0db493"
+		file="properties/${mule.env}-secure-properties.yaml"
+		key="${encrypt.key}">
+		<secure-properties:encrypt
+			algorithm="Blowfish" />
+	</secure-properties:config>
+	<!-- <global-property doc:name="Global Property" doc:id="4f82fa33-7a45-460f-a363-98e15e337813" 
+		name="encrypt.key" value="secure12345" /> -->
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="64d736cf-0ac8-4b81-8833-e5e8b66c2ece"
+		file="properties/common.yaml" />
+	<global-property doc:name="Global Property"
+		doc:id="2de92508-c928-40dd-9a64-ed30ef4a8b62" name="encrypt.key"
+		value="secure12345" />
+	<os:object-store
+		name="Object_store_Previous_cif_Job_Run" doc:name="Object store"
+		doc:id="f721686e-1d15-4a21-b491-93416e13b2ba" entryTtl="3"
+		entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
+		config-ref="ObjectStore_Config" />
+	<http:request-config
+		name="HTTP_Request_configuration"
+		doc:name="HTTP Request configuration"
+		doc:id="6cdc2ca3-904a-4804-b5e8-d85147cc28f6"
+		basePath="${pricebooks.basePath}">
+		<http:request-connection
+			host="${pricebooks.host}" port="${pricebooks.port}" protocol="HTTPS" />
+	</http:request-config>
+	<salesforce-composite:composite-config
+		name="Salesforce_Composite_Config"
+		doc:name="Salesforce Composite Config"
+		doc:id="5c9e825b-4994-4fd5-b7ac-4a1b73578d88">
+		<salesforce-composite:oauth-user-pass-connection
+			consumerKey="${secure::sf.key}" consumerSecret="${secure::sf.secret}"
+			username="${sf.user}" password="${secure::sf.password}"
+			securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}" />
+	</salesforce-composite:composite-config>
+	<!-- <email:smtp-config name="Email_SMTP"
+		doc:name="Email SMTP" doc:id="59d1998f-e7db-476f-80c6-a88da0e96c58"
+		from="mulesoftsmtpuser@ntnusa.com">
+		<email:smtp-connection host="smtp.office365.com"
+			user="mulesoftsmtpuser@ntnusa.com" password="G#342148323062um"
+			port="587">
+			<reconnection failsDeployment="true">
+				<reconnect />
+			</reconnection>
+			<email:properties>
+				<email:property key="mail.smtp.starttls.enable"
+					value="true" />
+				<email:property key="mail.debug" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config> -->
+	<email:smtp-config name="NTN-SMTP-Details"
+		doc:name="Email SMTP" doc:id="65c45e71-0c73-48af-8ac6-95d8e35e2fcc"
+		from="mulesoftsmtpuser@ntnusa.com">
+		<email:smtp-connection host="${smtp.host}"
+			port="${smtp.port}" user="${secure::smtp.user}"
+			password="${secure::smtp.password}">
+			<email:properties>
+				<email:property key="mail.smtp.starttls.enable"
+					value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+</mule>

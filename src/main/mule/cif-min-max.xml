@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<!-- [STUDIO:"cif-min-max-flow"]<flow name="cif-min-max-flow"
+		doc:id="82ea5a52-b6c6-4f0c-88e6-f27cc9bb9088" tracking:enable-default-events="true">
+		<scheduler doc:name="cif-scheduler"
+			doc:id="848a0d1a-7c2a-4229-860d-e1059f74f297">
+			<scheduling-strategy>
+				<fixed-frequency frequency="${scheduler.frequency}"
+					timeUnit="DAYS" startDelay="${scheduler.startDelay}" />
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="jobRunTime"
+			doc:id="f93e5ab8-b656-47f9-b9a8-46272860b5a2">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable resource="dwl/vars-cifjobRun.dwl"
+					variableName="cifjobRun" />
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="jobRun logger"
+			doc:id="22b638ed-5b6a-41ea-8461-c8fcacc97b68"
+			message="#[vars.cifjobRun&#93;" category="${log.category}" />
+		<os:retrieve doc:name="retrievePreviousJobRun"
+			doc:id="11df79f5-c531-40af-ba38-5cdf73780b6d" key="previouscifJobRun"
+			target="previouscifJobRun"
+			objectStore="Object_store_Previous_cif_Job_Run">
+			<os:default-value><![CDATA[#[vars.cifjobRun&#93;&#93;&#93;></os:default-value>
+		</os:retrieve>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="adcd6a80-cd8a-41c6-ac9e-f478fb35b5bb"
+			message='Calling "CIF-min-max-flow"' category="${log.category}" />
+		<flow-ref doc:name="cif-min-maxFlow"
+			doc:id="84e34ec2-e4c1-40f0-8e6e-98d763655481" name="cif-min-max-subFlow" />
+		<os:store doc:name="Store current job run details"
+			doc:id="2d784d8c-92aa-4f61-8944-d57765ebe71c" key="previouscifJobRun"
+			objectStore="Object_store_Previous_cif_Job_Run">
+			<os:value><![CDATA[#[vars.cifjobRun&#93;&#93;&#93;></os:value>
+		</os:store>
+	</flow> [STUDIO] -->
+	<!-- [STUDIO:"cif-min-max-subFlow"]<sub-flow name="cif-min-max-subFlow" doc:id="27fd8699-5cd7-4ab1-8e67-ca6c39542d55">
+		<ee:transform doc:name="Transform Message" doc:id="61334e8e-3434-41cb-8812-1d316e97dbd1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+&#45;&#45;-
+readUrl("classpath://queryScript/sqlScript-cif-consolidated-$(p('mule.env')).dwl","text/plain")&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="f9573423-e714-4234-87d4-838343785524" expression="#[payload&#93;" />
+		<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="Oracle_JDE_Database_Config">
+			<db:sql><![CDATA[#[payload&#93;&#93;&#93;></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
+			<ee:message>
+				<ee:set-payload resource="dwl/cif-min-max-subFlow.dwl" />
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="srtxExternalID"><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+vars.initialResultSet map {
+    srtxExternalID:if ((trim($.IMSRTX_COLITM) != null) and (trim($.IMSRTX_COLITM) != "")) (trim($.IMSRTX_COLITM) ++ "-NTN-NTN") else ""
+    } distinctBy $ default ""&#93;&#93;></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference to cif-min-max-choice-subflow" doc:id="1397cf16-4152-456e-9609-39a6fbc84844" name="cif-min-max-choice-subflow" />
+		<logger level="INFO" doc:name="Logger" doc:id="8d203da8-7a0e-4a06-a7a3-7b2bb9b77f36" message="************** CIF MAX MIN Processing Completed Successfully ************************" />
+	</sub-flow> [STUDIO] -->
+	<!-- [STUDIO:"cif-min-max-choice-subflow"]<sub-flow name="cif-min-max-choice-subflow" doc:id="674ad140-754c-4043-b9c2-363b961841c6">
+		<choice doc:name="Choice" doc:id="f14418a8-007d-4208-bf5a-d8121ef0b63d">
+			<when expression="#[payload !=[&#93;&#93;">
+				<scatter-gather doc:name="Scatter-Gather" doc:id="500e96d7-fba6-4213-897f-8e1d9d87e04b">
+					<route>
+						<batch:job jobName="base-part-batch-job" doc:id="67ae987b-c883-4ea3-adb6-5f40c1c1c764">
+							<batch:process-records>
+								<batch:step name="base-batch-step" doc:id="638c7dfa-5829-48ef-a1b1-cebfe178ced2" acceptExpression='#[payload.drawExternalID != null  and payload.drawExternalID !="" and payload.drawExternalID != [&#93; and payload.drawExternalID != [""&#93;  &#93;'>
+									<ee:transform doc:name="store the externalId" doc:id="18c6236e-45ba-4f90-99d2-82f41d0fafbe">
+										<ee:message>
+										</ee:message>
+										<ee:variables>
+											<ee:set-variable variableName="drawExternalId" ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+									<ee:transform doc:name="Transform Message" doc:id="0d1b6513-2255-4b64-a5b6-2a809dcc7f1f">
+			<ee:message>
+											<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+&#45;&#45;-
+readUrl("classpath://queryScript/sqlScript-councs-imdraw-$(p('mule.env')).dwl","text/plain")&#93;&#93;></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="fd5a9466-9c09-468d-9e64-3979686606a8" expression="#[payload&#93;" />
+									<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="Oracle_JDE_Database_Config">
+			<db:sql><![CDATA[#[payload&#93;&#93;&#93;></db:sql>
+		</db:select>
+									<ee:transform doc:name="Transform Message" doc:id="f916d3d3-6fd9-4e69-83f3-bbb30cca03d3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+[{
+    External_ID__c : vars.drawExternalId.drawExternalID,
+    CIF_Max__c : (trim(payload.MAX_COUNCS_IMDRAW) default "0"),
+    CIF_Min__c : (trim(payload.MIN_COUNCS_IMDRAW) default "0")
+}&#93;&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+									<logger level="INFO" doc:name="Logger" doc:id="19e6441f-6c8d-4135-9ae9-0fc80c1b25ef" message="#[payload&#93;" />
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="e7d7b345-e576-4597-a9ca-79ffcad51fcd" size="100">
+										<ee:transform doc:name="Transform Message" doc:id="49e8cb21-6492-40d6-90a9-a2ff6ba49135">
+											<ee:message>
+												<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+										<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
+									</batch:aggregator>
+								</batch:step>
+							</batch:process-records>
+							<batch:on-complete>
+								<logger level="INFO" doc:name="Logger" doc:id="9e570117-ca6f-417f-9fb8-fa28fe08ffb8" message='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{"operationName" : "BASE DRAW BATCH RESPONSE : \n"} ++ payload&#93;' />
+								<logger level="INFO" doc:name="Logger" doc:id="12fb3103-18a9-458c-8beb-51b61ebe13f7" message='"CIF DRWA COMPLETED"' />
+							</batch:on-complete>
+						</batch:job>
+					</route>
+					<route>
+						<batch:job jobName="industry-part-batch-job" doc:id="80707201-a406-45c3-8944-9999ca5d1013">
+							<batch:process-records>
+								<batch:step name="industry-batch-step" doc:id="f43842d1-c3b8-4fd6-b4a7-213cf5ab96ab" acceptExpression='#[payload.srtxExternalID != null  and payload.srtxExternalID !="" and payload.srtxExternalID != [&#93;  and payload.srtxExternalID != [""&#93; &#93;'>
+									<ee:transform doc:name="store the externalId" doc:id="4ee90d0c-c1be-4ab4-81f4-766d960e00b3">
+										<ee:message>
+										</ee:message>
+										<ee:variables>
+											<ee:set-variable variableName="strxExternalId"><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+									<ee:transform doc:name="Transform Message" doc:id="cd8c5539-5dbd-4b0e-8d9d-47d73c2aeda5">
+			<ee:message>
+											<ee:set-payload ><![CDATA[%dw 2.0
+output text/plain
+&#45;&#45;-
+readUrl("classpath://queryScript/sqlScript-councs-imsrtx-$(p('mule.env')).dwl","text/plain")&#93;&#93;></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="5d09a307-7a10-4eea-8ceb-781362a2f861" expression="#[payload&#93;" />
+									<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="Oracle_JDE_Database_Config">
+			<db:sql><![CDATA[#[payload&#93;&#93;&#93;></db:sql>
+		</db:select>
+									<ee:transform doc:name="Transform Message" doc:id="c2110ead-8fe3-45a2-b5ad-fa0ef67195cd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+[{
+    External_ID__c : vars.strxExternalId.srtxExternalID,
+    CIF_Max__c : (trim(payload.MAX_COUNCS_IMSRTX) default "0"),
+    CIF_Min__c : (trim(payload.MIN_COUNCS_IMSRTX) default "0")
+}&#93;&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+									<logger level="INFO" doc:name="Logger" doc:id="5e3aa011-a177-41bd-8a0a-07ad8c5e9faa" message="#[payload&#93;" />
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="73ddaad8-a55c-4b64-8a2f-393379bc8c57" size="100">
+										<ee:transform doc:name="Transform Message" doc:id="24a2918b-68d0-4d64-92f1-f19b0f63a611">
+											<ee:message>
+												<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+										<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+									</batch:aggregator>
+								</batch:step>
+							</batch:process-records>
+							<batch:on-complete>
+								<logger level="INFO" doc:name="Logger" doc:id="0e897aa4-12b3-444e-b7a1-4ffc572b39b9" message='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{"operationName" : "INDUSTRY SRTX BATCH RESPONSE : \n"} ++ payload&#93;'/>
+								<logger level="INFO" doc:name="Logger" doc:id="37730d66-2916-49da-9b0a-16eede7a41ac" message="CIF SRTX COMPLETED" />
+							</batch:on-complete>
+						</batch:job>
+					</route>
+				</scatter-gather>
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="473858c2-c0d5-4765-81a9-0d44a251cfa6" message='"NOTHING TO UPDATE IN THIS RUN"' />
+			</otherwise>
+		</choice>
+	</sub-flow> [STUDIO] -->
+</mule>
