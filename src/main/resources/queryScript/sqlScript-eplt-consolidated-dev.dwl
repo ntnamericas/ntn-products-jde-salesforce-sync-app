@@ -6,8 +6,8 @@ IBLTLV_IBLITM AS (
     -- Step 1: Get distinct IBLITM and IBLTLV values based on update criteria
     SELECT TRIM(TT1.IBLITM) AS IBLITM, TRIM(TT1.IBLTLV) AS IBLTLV
     FROM TESTDTA.F4102 TT1 
-    WHERE (TRIM(TT1.IBUPMJ) >= $(vars.previousepltJobRun.date) AND TRIM(TT1.IBTDAY) >= $(vars.previousepltJobRun.time))
-	--- AND TRIM(TT1.IBLITM)='6203[TB00]'
+    --WHERE (TRIM(TT1.IBUPMJ) >= $(vars.previousepltJobRun.date) AND TRIM(TT1.IBTDAY) >= $(vars.previousepltJobRun.time))
+	WHERE TRIM(TT1.IBLITM)='JM720249[H100]'
 ),
 IBLTLV_IBPRP1_IBSRP4 AS (
     ---Query PRP1 and SRP4 where LITM = (IBLTLV_IBLITM) and IBMCU=1801 Hold variables IBPRP1 and IBSRP4
@@ -54,8 +54,8 @@ LEFT JOIN IMDRAW_IMSRTX_IBLTLV T4 ON
     TRIM(T4.IMLITM) = TRIM(T2.IMLITM)
 
 
-WHERE ((TRIM(T2.IMUPMJ) > $(vars.previousepltJobRun.date) AND TRIM(T2.IMTDAY) >= $(vars.previousepltJobRun.time)) 
-    OR (TRIM(T1.IBUPMJ) > $(vars.previousepltJobRun.date) AND TRIM(T1.IBTDAY) >= $(vars.previousepltJobRun.time)))
-	--(T2.IMLITM ='6203[TB00]')
+--WHERE ((TRIM(T2.IMUPMJ) > $(vars.previousepltJobRun.date) AND TRIM(T2.IMTDAY) >= $(vars.previousepltJobRun.time)) 
+ --   OR (TRIM(T1.IBUPMJ) > $(vars.previousepltJobRun.date) AND TRIM(T1.IBTDAY) >= $(vars.previousepltJobRun.time)))
+	WHERE (T2.IMLITM ='JM720249[H100]')
 
 GROUP BY T3.IBPRP1, T3.IBSRP4, T4.IMDRAW, T4.IMSRTX"

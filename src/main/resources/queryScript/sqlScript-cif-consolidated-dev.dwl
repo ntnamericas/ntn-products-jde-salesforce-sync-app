@@ -7,8 +7,8 @@ COLEDG07_F4105 AS (
  ---Based on changed since last run (review  COUMPJ and COTDAY)Hold variable COLITM
     Select TRIM(X1.COLITM) AS COLITM, TRIM(X1.COLEDG) AS COLEDG, TRIM(X1.COUPMJ) AS COUPMJ, TRIM(X1.COTDAY) AS COTDAY, TRIM(X1.COMCU) AS COMCU
     FROM TESTDTA.F4105 X1
-    WHERE  X1.COLEDG='07' AND COMCU='1801' AND (TRIM(X1.COUPMJ) >= $(vars.previouscifJobRun.date) AND TRIM(X1.COTDAY) >= $(vars.previouscifJobRun.time))
-	--AND TRIM(X1.COLITM)='6203[TB00]' 
+    WHERE  X1.COLEDG='07' AND TRIM(X1.COMCU)='1801' AND TRIM(X1.COLITM)='JM720249[H100]' --AND (TRIM(X1.COUPMJ) >= $(vars.previouscifJobRun.date) AND TRIM(X1.COTDAY) >= $(vars.previouscifJobRun.time))
+	--AND TRIM(X1.COLITM)='JM720249[H100]' 
 	 
 ),
 
@@ -69,8 +69,8 @@ LEFT JOIN IMDRAW_IMSRTX_COLITM T4 ON
 LEFT JOIN COLEDG07_F4105 T5 ON
     TRIM(T5.COMCU)=TRIM(T1.IBMCU)
 
---WHERE T2.IMLITM = '6203[TB00]'
-WHERE (T5.COUPMJ >= $(vars.previouscifJobRun.date)) AND (T5.COTDAY >= $(vars.previouscifJobRun.time)) 
+WHERE T2.IMLITM = 'JM720249[H100]'
+--WHERE (T5.COUPMJ >= $(vars.previouscifJobRun.date)) AND (T5.COTDAY >= $(vars.previouscifJobRun.time)) 
  
 GROUP BY
     T3.IBPRP1, T3.IBSRP4, T4.IMDRAW, T4.IMSRTX"

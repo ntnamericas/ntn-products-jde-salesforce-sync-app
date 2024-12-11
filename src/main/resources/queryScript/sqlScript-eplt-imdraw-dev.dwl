@@ -7,7 +7,7 @@ IBLTLV_IBLITM AS (
     -- Step 1: Get distinct IBLITM and IBLTLV values based on update criteria
     SELECT TRIM(TT1.IBLITM) AS IBLITM, TRIM(TT1.IBLTLV) AS IBLTLV
     FROM TESTDTA.F4102 TT1 
-    WHERE (TRIM(TT1.IBUPMJ) > $(vars.previousepltJobRun.date) AND TRIM(TT1.IBTDAY) >= $(vars.previousepltJobRun.time))
+    WHERE TRIM(TT1.IBLITM)='JM720249[H100]' ---AND (TRIM(TT1.IBUPMJ) > $(vars.previousepltJobRun.date) AND TRIM(TT1.IBTDAY) >= $(vars.previousepltJobRun.time))
 	--AND TRIM(TT1.IBLITM)='6203[TB00]'
 ),
 IBLTLV_IBPRP1_IBSRP4 AS (
@@ -65,7 +65,9 @@ LEFT JOIN IMDRAW_IMSRTX_IBLTLV T4 ON
 LEFT JOIN MINMAX_IBLTLV_IMDRAW T5 ON
      TRIM(T5.IBLITM)=TRIM(T1.IBLITM)
 
-WHERE (TRIM(T1.IBUPMJ) > $(vars.previousepltJobRun.date) AND TRIM(T1.IBTDAY) >= $(vars.previousepltJobRun.time))
+WHERE TRIM(T2.IMLITM) = 'JM720249[H100]'
+
+--WHERE (TRIM(T1.IBUPMJ) > $(vars.previousepltJobRun.date) AND TRIM(T1.IBTDAY) >= $(vars.previousepltJobRun.time))
 -- and(T2.IMLITM ='6203[TB00]') 
 
 GROUP BY T3.IBPRP1, T3.IBSRP4, T4.IMDRAW, T4.IMSRTX, T5.MIN_IBLTLV, T5.MAX_IBLTLV"

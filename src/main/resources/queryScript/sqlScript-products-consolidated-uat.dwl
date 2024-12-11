@@ -7,7 +7,7 @@ DRDL01_IBPRP4 AS (
 	-- Step 1: Retrieve DRDL01 values for IBPRP4 from UDC 41/P4
     SELECT TRIM(Y1.DRDL01) AS DRDLO1, TRIM(Y1.DRKY) AS DRKY
     FROM CRPCTL.F0005 Y1
-    WHERE TRIM(Y1.DRSY) = '41' AND TRIM(Y1.DRRT) = 'P4' --AND ( TRIM(Y1.DRUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y1.DRUPMT) >= $(vars.previousProductsJobRun.time))
+    --WHERE TRIM(Y1.DRSY) = '41' AND TRIM(Y1.DRRT) = 'P4' --AND ( TRIM(Y1.DRUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y1.DRUPMT) >= $(vars.previousProductsJobRun.time))
 ),
 
 
@@ -15,7 +15,7 @@ IBLTLV_IBLITM AS (
 	-- Step 2: Get IBLITM and IBLTLV from F4102 based on criteria
     SELECT TRIM(Y2.IBLITM) AS IBLITM, TRIM(Y2.IBLTLV) AS IBLTLV
     FROM CRPDTA.F4102 Y2
-    WHERE ( TRIM(Y2.IBUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y2.IBTDAY) >= $(vars.previousProductsJobRun.time))
+    --WHERE ( TRIM(Y2.IBUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y2.IBTDAY) >= $(vars.previousProductsJobRun.time))
 ),
 
 IMDRAW_IMSRTX_IBLTLV AS (
@@ -89,8 +89,10 @@ LEFT JOIN IMDRAW_IMSRTX_IBLTLV T16
 LEFT JOIN IMLITM_IMSRTX_IBLTLV T17 
     ON TRIM(T17.IMLITM) = TRIM(T2.IMLITM)
  
-WHERE ((T2.IMUPMJ >= $(vars.productsJobRun.date) AND T2.IMTDAY >= $(vars.previousProductsJobRun.time)) OR (T1.IBUPMJ >= $(vars.productsJobRun.date) AND T1.IBTDAY >= $(vars.previousProductsJobRun.time)) OR (T12.DRUPMJ >= $(vars.productsJobRun.date) AND T12.DRUPMT >= $(vars.previousProductsJobRun.time)))
-    --T2.IMLITM = '6203[TB00]'
+--WHERE ((T2.IMUPMJ >= $(vars.productsJobRun.date) AND T2.IMTDAY >= $(vars.previousProductsJobRun.time)) 
+--	OR (T1.IBUPMJ >= $(vars.productsJobRun.date) AND T1.IBTDAY >= $(vars.previousProductsJobRun.time)) 
+--	OR (T12.DRUPMJ >= $(vars.productsJobRun.date) AND T12.DRUPMT >= $(vars.previousProductsJobRun.time)))
+WHERE    T2.IMLITM = '6203[TB00]'
 GROUP BY
     T1.IBPRP4, T1.IBLITM, T1.IBSTKT, T1.IBSRP4, T1.IBMCU, T1.IBSRP2, T1.IBSRP1, T2.IMLITM,
     T2.IMSRTX, T3.DRDLO1, T12.DRKY, T12.DRDL01, T13.DRKY, T13.DRDL01,
