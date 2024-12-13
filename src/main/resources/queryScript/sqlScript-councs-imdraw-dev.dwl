@@ -8,8 +8,7 @@ COLEDG07_F4105 AS (
     Select TRIM(X1.COLITM) AS COLITM, TRIM(X1.COLEDG) AS COLEDG, TRIM(X1.COUPMJ) AS COUPMJ, TRIM(X1.COTDAY) AS COTDAY, TRIM(X1.COMCU) AS COMCU
     FROM TESTDTA.F4105 X1
     WHERE  X1.COLEDG='07' AND TRIM(COMCU)='1801' 
-    AND TRIM(X1.COLITM)='JM720249[H100]'
-    --AND (X1.COUPMJ >= $(vars.previouscifJobRun.date) AND X1.COTDAY >= $(vars.previouscifJobRun.time))
+    AND (X1.COUPMJ >= $(vars.previouscifJobRun.date) AND X1.COTDAY >= $(vars.previouscifJobRun.time))
 	 
 	
 ),
@@ -80,9 +79,8 @@ LEFT JOIN COUNCS_IMDRAW T9 ON
      TRIM(T9.COMCU)='1801' 
      AND T9.COLEDG='07'
 
-WHERE T2.IMLITM = 'JM720249[H100]'
---WHERE T2.IMLITM = '6203[TB00]'
---WHERE (T4.COUPMJ >= $(vars.previouscifJobRun.date) AND T4.COTDAY >= $(vars.previouscifJobRun.time))
+--WHERE T2.IMLITM = 'JM720249[H100]'
+WHERE (T4.COUPMJ >= $(vars.previouscifJobRun.date) AND T4.COTDAY >= $(vars.previouscifJobRun.time))
      
 GROUP BY
     T1.IBLITM, T2.IMLITM"

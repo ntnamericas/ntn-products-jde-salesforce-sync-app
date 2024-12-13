@@ -7,5 +7,5 @@ payload map {
     	and trim($.IBSRP4_COLITM != null)) 
     	( trim($.IMDRAW_COLITM) ++ "-" ++ trim($.IBPRP1_COLITM) ++ "-" ++ trim($.IBSRP4_COLITM)) else "",
     srtxExternalID:if ((trim($.IMSRTX_COLITM) != null) and (trim($.IMSRTX_COLITM) != "")) 
-    	(trim($.IMSRTX_COLITM) ++ "-NTN-NTN") else ""
+    	(trim($.IMSRTX_COLITM) ++ "-NTN-NBCC") else ""
 } distinctBy $

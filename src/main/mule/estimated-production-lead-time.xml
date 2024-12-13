@@ -18,7 +18,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
 	<flow name="eplt-min-max-flow"
-		doc:id="ac8c8c25-e0df-466a-ab5a-ead4818c2906" tracking:enable-default-events="true">
+		doc:id="ac8c8c25-e0df-466a-ab5a-ead4818c2906" tracking:enable-default-events="true" initialState="started">
 		<scheduler doc:name="eplt-scheduler"
 			doc:id="40ddd6c0-3868-4e2d-9a3c-b9c508d1344f">
 			<scheduling-strategy>
@@ -45,7 +45,7 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 		</os:retrieve>
 		<logger level="INFO" doc:name="Logger"
 			doc:id="ec351cde-888f-4afb-aaa0-17b804ff7188"
-			message='#["Calling jde-to-sf-app-sub-flow"]' category="${log.category}" />
+			message='#["Calling estimated-lead-time-min-max-subflow"]' category="${log.category}" />
 		<flow-ref doc:name="estimated-lead-time-min-maxFlow"
 			doc:id="a2951d4c-1c36-4da5-9a8a-10287dcf1163"
 			name="estimated-lead-time-min-max-subflow" />
@@ -126,17 +126,27 @@ output application/json
 										<ee:transform doc:name="Transform Message" doc:id="e2307687-28f9-4202-9e08-73612f323821" >
 											<ee:message >
 												<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
+output application/java
 ---
 payload map read( $, 'application/json')]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
+										<ee:transform doc:name="Transform Message" doc:id="b9808cd7-6029-4638-98f7-ba755d2f5b8f" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+											</ee:message>
+										</ee:transform>
 										<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
+										<logger level="INFO" doc:name="Logger" doc:id="3929cf74-53cd-435f-9603-75215abb1b4f" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>
 									</batch:aggregator>
 								</batch:step>
 							</batch:process-records>
 							<batch:on-complete >
 								<logger level="INFO" doc:name="Logger" doc:id="deb59088-3c46-49a6-802e-fa03732230ee" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{"operationName" : "ESTIMATED LEAD TIME DRAW BATCH RESPONSE : \n"} ++ payload]'/>
+								<logger level="INFO" doc:name="Logger" doc:id="f7fc6640-4245-42ce-b2e4-b59e94d9d602" message="ELTP DRAW COMPLETED"/>
 							</batch:on-complete>
 						</batch:job>
 					</route>
@@ -184,17 +194,27 @@ output application/json
 										<ee:transform doc:name="Transform Message" doc:id="b5b09927-4336-408b-a0a0-736221433b1e" >
 											<ee:message >
 												<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
+output application/java
 ---
 payload map read( $, 'application/json')]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
+										<ee:transform doc:name="Transform Message" doc:id="b01ffb11-447e-43ef-84df-21ae584a1d17" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+											</ee:message>
+										</ee:transform>
 										<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+										<logger level="INFO" doc:name="Logger" doc:id="5b7ae072-807d-447c-85ab-073e3ed64b18" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>
 									</batch:aggregator>
 								</batch:step>
 							</batch:process-records>
 							<batch:on-complete >
 								<logger level="INFO" doc:name="Logger" doc:id="eddac88f-c452-4c95-925a-8fb436764e4d" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{"operationName" : "ESTIMATED LEAD TIME SRTX BATCH RESPONSE : \n"} ++ payload]'/>
+								<logger level="INFO" doc:name="Logger" doc:id="4f3fcdbe-f6fc-46db-aab5-80201993f787" message="ELTP SRTX COMPLETED"/>
 							</batch:on-complete>
 						</batch:job>
 					</route>

@@ -5,27 +5,26 @@ output application/json
 {
         drawExternalIDLanded:
         if (
-            item.IMDRAW_IBLTLV != null and trim(item.IMDRAW_IBLTLV) != "" and
+            item.IMDRAW != null and trim(item.IMDRAW) != "" and
             item.IBPRP1 != null and trim(item.IBPRP1) != "" and
             item.IBSRP4 != null and trim(item.IBSRP4) != ""
         )
         (
-            trim(item.IMDRAW_IBLTLV) ++ "-" ++ trim(item.IBPRP1) ++ "-" ++ trim(item.IBSRP4)
+            trim(item.IMDRAW) ++ "-" ++ trim(item.IBPRP1) ++ "-" ++ trim(item.IBSRP4)
         )
         else "" ,
  
  
     srtxExternalIDLanded:
-        if (item.IMSRTX_IBLTLV != null and trim(item.IMSRTX_IBLTLV) != "")
+        if (item.IMSRTX != null and trim(item.IMSRTX) != "")
             (
                 if (["1801", "1802"] contains trim(item.IBMCU))
-                    trim(item.IMSRTX_IBLTLV) ++ "-NTN-NBCC"
+                    trim(item.IMSRTX) ++ "-NTN-NBCC"
                 else
-                    trim(item.IMSRTX_IBLTLV) ++ "-NTN-NTN"
+                    trim(item.IMSRTX) ++ "-NTN-NTN"
             )
         else "",
- 
- 
+
     Block_Code__c : trim(item.IBPRP4),
     Block_Code_Description__c : trim(item.DRDL01_IBPRP4),
     Brand__c : trim(item.IBSRP4),

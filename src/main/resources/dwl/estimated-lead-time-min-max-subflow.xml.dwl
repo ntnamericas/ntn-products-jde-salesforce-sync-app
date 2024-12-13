@@ -9,5 +9,5 @@ payload map {
     		trim($.IBSRP4_IBLTV)
     	) else "",
     srtxExternalID:if (( trim($.IMSRTX_IBLTV) != "") and ( trim($.IMSRTX_IBLTV) != null))
-         (trim($.IMSRTX_IBLTV) ++ "-NTN-NTN") else ""
+         (trim($.IMSRTX_IBLTV) ++ "-NTN-NBCC") else ""
 } distinctBy $
