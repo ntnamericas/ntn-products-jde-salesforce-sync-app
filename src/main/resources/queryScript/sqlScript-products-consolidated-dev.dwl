@@ -14,10 +14,11 @@ DRDL01_IBPRP4 AS (
 
 IBLTLV_IBLITM AS (
 	-- Step 2: Get IBLITM and IBLTLV from F4102 based on criteria
-    SELECT TRIM(Y2.IBLITM) AS IBLITM, TRIM(Y2.IBLTLV) AS IBLTLV
+    SELECT TRIM(Y2.IBLITM) AS IBLITM, TRIM(Y2.IBLTLV) AS IBLTLV, TRIM(Y2.IBMCU) AS IBMCU
     FROM TESTDTA.F4102 Y2
+	WHERE TRIM(Y2.IBMCU) = '1801'
     --WHERE TRIM(Y2.IBLITM) = '6200ZC3[J100]'
-	WHERE ( TRIM(Y2.IBUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y2.IBTDAY) >= $(vars.previousProductsJobRun.time))
+	--WHERE ( TRIM(Y2.IBUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y2.IBTDAY) >= $(vars.previousProductsJobRun.time))
 ),
 
 IMDRAW_IMSRTX_IBLTLV AS (

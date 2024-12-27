@@ -8,7 +8,7 @@ DRDL01_IBPRP4 AS (
     SELECT TRIM(Y1.DRDL01) AS DRDLO1, TRIM(Y1.DRKY) AS DRKY
     FROM CRPCTL.F0005 Y1
     WHERE TRIM(Y1.DRSY) = '41' AND TRIM(Y1.DRRT) = 'P4' 
-    (AND TRIM(Y1.DRUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y1.DRUPMT) >= $(vars.previousProductsJobRun.time))
+    AND TRIM(Y1.DRUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y1.DRUPMT) >= $(vars.previousProductsJobRun.time)
 ),
 
 
@@ -115,8 +115,8 @@ LEFT JOIN IMLITM_IMSRTX_IBLTLV T17
 LEFT JOIN DRAW_COST ON TRIM(T2.IMLITM) = DRAW_COST.IBLITM
 LEFT JOIN SRTX_COST ON TRIM(T2.IMLITM) = SRTX_COST.IBLITM
  
-WHERE ((T2.IMUPMJ >= $(vars.productsJobRun.date) AND T2.IMTDAY >= $(vars.previousProductsJobRun.time)) 
-	OR (T12.DRUPMJ >= $(vars.productsJobRun.date) AND T12.DRUPMT >= $(vars.previousProductsJobRun.time)))
+WHERE ((T2.IMUPMJ >= $(vars.productsJobRun.date) AND T2.IMTDAY >= $(vars.previousProductsJobRun.time))) 
+	--OR (T12.DRUPMJ >= $(vars.productsJobRun.date) AND T12.DRUPMT >= $(vars.previousProductsJobRun.time)))
     --T2.IMLITM = '6203[TB00]'
 GROUP BY
     T1.IBPRP4, T1.IBLITM, T1.IBSTKT, T1.IBSRP4, T1.IBMCU, T1.IBSRP2, T1.IBSRP1, T2.IMLITM,

@@ -19,7 +19,7 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
 	<flow name="cif-min-max-flow"
-		doc:id="82ea5a52-b6c6-4f0c-88e6-f27cc9bb9088" tracking:enable-default-events="true" initialState="stopped">
+		doc:id="82ea5a52-b6c6-4f0c-88e6-f27cc9bb9088" tracking:enable-default-events="true" initialState="${cif.initialState}">
 		<scheduler doc:name="cif-scheduler"
 			doc:id="848a0d1a-7c2a-4229-860d-e1059f74f297">
 			<scheduling-strategy>

@@ -17,7 +17,7 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
 	<flow name="prodcuts-schedule-flow"
-		doc:id="6c64299d-8db3-4c46-a5d2-1def002fce65" tracking:enable-default-events="true" initialState="stopped">
+		doc:id="6c64299d-8db3-4c46-a5d2-1def002fce65" tracking:enable-default-events="true" initialState="${products.initialState}">
 		<scheduler doc:name="prodcuts-scheduler" doc:id="0c38b9fb-7af5-47a4-a2b7-866e400c5559" >
 			<scheduling-strategy >
 				<fixed-frequency frequency="${scheduler.frequency}" timeUnit="DAYS" startDelay="${scheduler.startDelay}"/>
@@ -38,7 +38,7 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 			target="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
 			<os:default-value><![CDATA[#[vars.productsJobRun]]]></os:default-value>
 		</os:retrieve>
-		<logger level="INFO" doc:name="Logger" doc:id="730807af-856e-4f6a-9e87-1a050b20b8ee" message='#["Calling jde-to-sf-app-sub-flow"]' category="${log.category}"/>
+		<logger level="INFO" doc:name="Logger" doc:id="730807af-856e-4f6a-9e87-1a050b20b8ee" message='#["Calling products-sub-flow"]' category="${log.category}"/>
 		<flow-ref doc:name="jde-products-sub-flow"
 			doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
 		<os:store doc:name="Store current job run details"
@@ -75,14 +75,16 @@ output application/json
 payload]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<ee:transform doc:name="Transform products to json" doc:id="baf3e753-dfa1-4242-8e3f-ab87dd59ace1">
+		<logger level="INFO" doc:name="Logger" doc:id="f2c4f333-1835-4427-8f7b-3aa0e7952aae" message='#["Product Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
+		<!-- [STUDIO:"Transform products to json"]<ee:transform doc:name="Transform products to json" doc:id="baf3e753-dfa1-4242-8e3f-ab87dd59ace1">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
-payload]]></ee:set-payload>
+&#45;&#45;-
+payload&#93;&#93;></ee:set-payload>
 			</ee:message>
-		</ee:transform>
+		</ee:transform> [STUDIO] -->
+		<!-- [STUDIO:"Logger"]<logger level="DEBUG" doc:name="Logger" doc:id="7163518a-731b-47ed-9f15-6586fe36440d" message="#[vars.productMaster&#93;"/> [STUDIO] -->
 		<ee:transform doc:name="map metadata" doc:id="76a67c59-2012-4683-bdbc-d90a3d2877ca">
 				<ee:message>
 				</ee:message>
@@ -90,7 +92,7 @@ payload]]></ee:set-payload>
 				<ee:set-variable resource="dwl/metadata.dwl" variableName="metadata" />
 				</ee:variables>
 			</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="95ab1d39-4e5e-42ce-bf86-365a8d3518f1" message="#[vars.productMaster]" />
+		<!-- [STUDIO:"Logger"]<logger level="ERROR" doc:name="Logger" doc:id="95ab1d39-4e5e-42ce-bf86-365a8d3518f1" message="#[vars.metadata&#93;" /> [STUDIO] -->
 		<flow-ref doc:name="products-mapping-subflow" doc:id="4eb4adc5-6e98-4f2c-b2ba-6d6d5d856783" name="products-mapping-subflow"/>
 		<ee:transform doc:name="Transform Message" doc:id="62e82583-d8b0-44da-bc20-a34f81653838" >
 			<ee:message >
@@ -103,7 +105,10 @@ output application/json
 "srtxExternalID": vars.metadata map ((item, index) -> item.srtxExternalIDLanded)}]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-	</sub-flow>
+		<logger level="INFO" doc:name="Logger" doc:id="7f09172a-5630-4aa0-b060-460ddeb49711" message="Calling LANDED-MIN-MAX-SUBFLOW"/>
+		<flow-ref doc:name="Flow Reference" doc:id="cdcbea4f-c4e0-443d-8914-07b2040253be" name="landed-min-max-choice-subflow"/>
+	
+</sub-flow>
 	<sub-flow name="products-mapping-subflow" doc:id="863e9334-dadb-4dc0-a1a2-f14c18dc3d40" >
 		<ee:transform doc:name="Transform Message" doc:id="0c587aab-5aca-493d-a5e7-440a83623a64">
 			<ee:message>
@@ -396,7 +401,15 @@ vars.metadata.drawExternalIDLanded map ((item, index) ->{
 			</ee:message>
 		</ee:transform>
 							<batch:aggregator doc:name="Batch Aggregator" doc:id="3c11b9f8-ee5b-4d09-ae4a-feab669410f3" size="100">
-								<salesforce:upsert doc:name="Upsert" doc:id="073d3b2d-9324-4a38-bf28-2091531982e7" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+								<ee:transform doc:name="Transform Message" doc:id="c259fcd0-2cc2-4d6a-b5e4-3f0382c0adea" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map read( $, 'application/json')]]></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+										<salesforce:upsert doc:name="Upsert" doc:id="073d3b2d-9324-4a38-bf28-2091531982e7" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
 								<logger level="INFO" doc:name="Logger" doc:id="3499fa5e-f052-4228-bcb1-389ffdea9aec" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]" />
 							</batch:aggregator>
 						</batch:step>
@@ -448,7 +461,15 @@ vars.metadata.drawExternalIDLanded map ((item, index) ->{
 			</ee:message>
 		</ee:transform>
 							<batch:aggregator doc:name="Batch Aggregator" doc:id="b8c0fe8c-c0ae-4ee1-9a2f-76b78afb5b7a" size="100">
-								<salesforce:upsert doc:name="Upsert" doc:id="68694f18-4a38-4322-acf7-dc7ba9ebf053" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+								<ee:transform doc:name="Transform Message" doc:id="44f9bee1-3fa4-41ef-aeeb-049b2ce2072b" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map read( $, 'application/json')]]></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+										<salesforce:upsert doc:name="Upsert" doc:id="68694f18-4a38-4322-acf7-dc7ba9ebf053" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
 								<logger level="INFO" doc:name="Logger" doc:id="7e8e944d-02f8-462e-810f-7b13d558ced7" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]" />
 							</batch:aggregator>
 						</batch:step>
@@ -468,7 +489,8 @@ payload]]></ee:set-payload>
 					</route>
 				</scatter-gather>
 			</when>
-		</choice>
+		
+</choice>
 	</sub-flow>
 	<sub-flow name="get-pricebook-id" doc:id="cb29d81e-e1f4-415d-9e7a-01c8ee0d4050">
 		<ee:transform doc:name="Transform Message" doc:id="48cb19e8-e866-445d-9f97-1195ef134e2c">

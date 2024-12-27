@@ -54,8 +54,8 @@ output application/json
     CurrencyIsoCode : if(["1801","1802"] contains (trim(item.IBMCU))) "CAD" else "USD",
     Name : if(trim(item.IMSRTX_IBLTLV) == trim(item.IMDRAW_IBLTLV)) trim(item.IMSRTX_IBLTLV) else trim(item.IMDRAW_IBLTLV),
     CPA_Detail_Classification__c:
-    if (item.DRKY_SRP5 != null and trim(item.DRKY_SRP5) != "" and item.DRDL01_SRP5 != null and trim(item.DRDL01_SRP5) != "")
-        (if (sizeOf(trim(item.DRKY_SRP5)) >= 2) trim(item.DRKY_SRP5)[1 to 2] else "") ++ "-" ++ trim(item.DRDL01_SRP5)
+    if ( trim(item.DRKY_SRP5) != null and trim(item.DRKY_SRP5) != "" and trim(item.DRDL01_SRP5) != null and trim(item.DRDL01_SRP5) != "")
+        (if (sizeOf(trim(item.DRKY_SRP5)) >= 2) trim(item.DRKY_SRP5) else "") ++ "-" ++ trim(item.DRDL01_SRP5)
     else "",
     CPA_General_Classification__c :if(trim(item.DRKY_SRP5) != "")((vars.excelData.Sheet1 filter ((sheetItem) -> sheetItem.SRP5 == trim(item.DRKY_SRP5)))[0].CPA_General_Classification__c)else "" ,
     CPA_MCA_Detail_Type_Code__c : trim(item.DRKY_SRP5),

@@ -77,3 +77,11 @@ smtp:
   host: "smtp.office365.com"
   port: "25"  
   to: "suman.chatterjee@prowesssoft.com"
+ 
+products:
+  initialState : "started"
+cif:
+  initialState : "started"
+eplt:
+  initialState : "started"
+  

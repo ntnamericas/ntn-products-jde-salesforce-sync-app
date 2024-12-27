@@ -18,7 +18,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
 	<flow name="eplt-min-max-flow"
-		doc:id="ac8c8c25-e0df-466a-ab5a-ead4818c2906" tracking:enable-default-events="true" initialState="started">
+		doc:id="ac8c8c25-e0df-466a-ab5a-ead4818c2906" tracking:enable-default-events="true" initialState="${eplt.initialState}">
 		<scheduler doc:name="eplt-scheduler"
 			doc:id="40ddd6c0-3868-4e2d-9a3c-b9c508d1344f">
 			<scheduling-strategy>
@@ -116,8 +116,8 @@ output application/json
 ---
 [{
     External_ID__c : vars.drawExternalId.drawExternalID,
-    Estimated_Production_Lead_Time_Min__c : ((payload.MIN_IBLTLV_DRAW) default "0"),
-    Estimated_Production_Lead_Time_Max__c : ((payload.MAX_IBLTLV_DRAW) default "0")
+    Estimated_Production_Lead_Time_Min__c : ((payload.MIN_IBLTLV_DRAW[0]) default "0") as String,
+    Estimated_Production_Lead_Time_Max__c : ((payload.MAX_IBLTLV_DRAW[0]) default "0") as String
 }]]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
@@ -184,8 +184,8 @@ output application/json
 ---
 [{
     External_ID__c : vars.strxExternalId.srtxExternalID,
-    Estimated_Production_Lead_Time_Max__c : ((payload.MAX_IBLTLV_SRTX) default "0"),
-    Estimated_Production_Lead_Time_Min__c : ((payload.MIN_IBLTLV_SRTX) default "0")
+    Estimated_Production_Lead_Time_Max__c : ((payload.MAX_IBLTLV_SRTX[0]) default "0") as String,
+    Estimated_Production_Lead_Time_Min__c : ((payload.MIN_IBLTLV_SRTX[0]) default "0") as String
 }]]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
