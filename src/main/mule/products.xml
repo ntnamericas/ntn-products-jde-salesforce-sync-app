@@ -252,7 +252,7 @@ if(vars.exId == "drawExternalIDLanded")
 					</ee:transform>
 					<logger level="INFO" doc:name="Logger" doc:id="88d13608-ae81-4d15-85a9-77c0ebe843aa" message="#[payload]"/>
 					<salesforce:query doc:name="Check Base External Id in Salesforce" doc:id="7bdad15c-8a8e-4d36-8312-11c4373a15c8" config-ref="Salesforce_Config" target="SFExtId">
-						<salesforce:salesforce-query><![CDATA[select Id from Product2 where External_ID__c = :externalId__c]]></salesforce:salesforce-query>
+						<salesforce:salesforce-query><![CDATA[select Id from Product2 where External_ID__c = :externalId__c and source__c='NBCC']]></salesforce:salesforce-query>
 						<salesforce:parameters><![CDATA[#[output application/java
 ---
 {

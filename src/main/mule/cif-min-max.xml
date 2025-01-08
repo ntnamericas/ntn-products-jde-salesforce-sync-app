@@ -89,9 +89,9 @@ vars.initialResultSet map {
 			<when expression="#[payload !=[]]">
 				<scatter-gather doc:name="Scatter-Gather" doc:id="500e96d7-fba6-4213-897f-8e1d9d87e04b">
 					<route>
-						<batch:job jobName="base-part-batch-job" doc:id="67ae987b-c883-4ea3-adb6-5f40c1c1c764" maxFailedRecords="-1">
+						<batch:job jobName="cif-base-part-batch-job" doc:id="67ae987b-c883-4ea3-adb6-5f40c1c1c764" maxFailedRecords="-1">
 							<batch:process-records>
-								<batch:step name="base-batch-step" doc:id="638c7dfa-5829-48ef-a1b1-cebfe178ced2" acceptExpression='#[payload.drawExternalID != null  and payload.drawExternalID !="" and payload.drawExternalID != [] and payload.drawExternalID != [""]  ]'>
+								<batch:step name="cif-base-batch-step" doc:id="638c7dfa-5829-48ef-a1b1-cebfe178ced2" acceptExpression='#[payload.drawExternalID != null  and payload.drawExternalID !="" and payload.drawExternalID != [] and payload.drawExternalID != [""]  ]'>
 									<ee:transform doc:name="store the externalId" doc:id="18c6236e-45ba-4f90-99d2-82f41d0fafbe">
 										<ee:message>
 										</ee:message>
@@ -158,9 +158,9 @@ payload[0]]]></ee:set-payload>
 						</batch:job>
 					</route>
 					<route>
-						<batch:job jobName="industry-part-batch-job" doc:id="80707201-a406-45c3-8944-9999ca5d1013" maxFailedRecords="-1">
+						<batch:job jobName="cif-industry-part-batch-job" doc:id="80707201-a406-45c3-8944-9999ca5d1013" maxFailedRecords="-1">
 							<batch:process-records>
-								<batch:step name="industry-batch-step" doc:id="f43842d1-c3b8-4fd6-b4a7-213cf5ab96ab" acceptExpression='#[payload.srtxExternalID != null  and payload.srtxExternalID !="" and payload.srtxExternalID != []  and payload.srtxExternalID != [""] ]'>
+								<batch:step name="cif-industry-batch-step" doc:id="f43842d1-c3b8-4fd6-b4a7-213cf5ab96ab" acceptExpression='#[payload.srtxExternalID != null  and payload.srtxExternalID !="" and payload.srtxExternalID != []  and payload.srtxExternalID != [""] ]'>
 									<ee:transform doc:name="store the externalId" doc:id="4ee90d0c-c1be-4ab4-81f4-766d960e00b3">
 										<ee:message>
 										</ee:message>
