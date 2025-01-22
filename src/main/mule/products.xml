@@ -382,7 +382,7 @@ readUrl("classpath://queryScript/sqlScript-landed-imdraw-$(p('mule.env')).dwl","
 </ee:variables>
 				</ee:transform>
 							<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="fefc2dd8-75e4-4f24-993f-3208b7bd3779" expression="#[payload]" />
-							<db:select doc:name="Select" doc:id="945f3429-4252-439e-a851-6b94ab1c74c3" config-ref="Oracle_JDE_Database_Config" target="LANDED_Draw">
+							<db:select doc:name="Select" doc:id="945f3429-4252-439e-a851-6b94ab1c74c3" config-ref="Oracle_JDE_Database_Config">
 			<db:sql><![CDATA[#[payload]]]></db:sql>
 
 				</db:select>
@@ -393,25 +393,15 @@ output application/json
 ---
 vars.metadata.drawExternalIDLanded map ((item, index) ->{       
 	"External_ID__c":item,
-    "LANDED_COST_MIN_DRAW": payload[0].LANDED_COST_MIN_DRAW,
-    "LANDED_COST_MAX_DRAW": payload[0].LANDED_COST_MAX_DRAW
+    "Landed_Cost_Min__c": payload[0].LANDED_COST_MIN_DRAW default 0,
+    "Landed_Cost_Max__c": payload[0].LANDED_COST_MAX_DRAW default 0
     
 })
  ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-							<batch:aggregator doc:name="Batch Aggregator" doc:id="3c11b9f8-ee5b-4d09-ae4a-feab669410f3" size="100">
-								<ee:transform doc:name="Transform Message" doc:id="c259fcd0-2cc2-4d6a-b5e4-3f0382c0adea" >
-											<ee:message >
-												<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-payload map read( $, 'application/json')]]></ee:set-payload>
-											</ee:message>
-										</ee:transform>
-										<salesforce:upsert doc:name="Upsert" doc:id="073d3b2d-9324-4a38-bf28-2091531982e7" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
-								<logger level="INFO" doc:name="Logger" doc:id="3499fa5e-f052-4228-bcb1-389ffdea9aec" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]" />
-							</batch:aggregator>
+							<salesforce:upsert doc:name="Upsert" doc:id="073d3b2d-9324-4a38-bf28-2091531982e7" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+									<logger level="INFO" doc:name="Logger" doc:id="917a4821-8aa5-4e0f-8b3e-cad4bc43f7af" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"Landed Cost upsereted successfully for : " ++ vars.metadata.drawExternalID[0] ++ " : " ++ payload.successful]'/>
 						</batch:step>
 					</batch:process-records>
 							<batch:on-complete>
@@ -444,7 +434,7 @@ readUrl("classpath://queryScript/sqlScript-landed-imsrtx-$(p('mule.env')).dwl","
 </ee:variables>
 		</ee:transform>
 							<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="04f185a5-2197-4225-88b6-2a6375f09da7" expression="#[payload]" />
-							<db:select doc:name="Select" doc:id="68bc6a69-ca3f-4ba3-9031-2b397f53f79a" config-ref="Oracle_JDE_Database_Config" target="LANDED_Srtx">
+							<db:select doc:name="Select" doc:id="68bc6a69-ca3f-4ba3-9031-2b397f53f79a" config-ref="Oracle_JDE_Database_Config">
 					<db:sql><![CDATA[#[payload]]]></db:sql>
 				</db:select>
 							<ee:transform doc:name="Transform Message" doc:id="e93cfba9-0eae-4ae6-b1c9-e76d2a4db651">
@@ -452,27 +442,23 @@ readUrl("classpath://queryScript/sqlScript-landed-imsrtx-$(p('mule.env')).dwl","
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-vars.metadata.drawExternalIDLanded map ((item, index) ->{       
+vars.metadata.srtxExternalID map ((item, index) ->{       
 	"External_ID__c":item,
-    "LANDED_COST_MIN_DRAW": payload[0].Landed_Cost_Min_SRTX,
-    "LANDED_COST_MAX_DRAW": payload[0].Landed_Cost_Max_SRTX
+    "Landed_Cost_Min__c": payload[0].Landed_Cost_Min_SRTX default 0,
+    "Landed_Cost_Max__c": payload[0].Landed_Cost_Max_SRTX default 0
     
 })]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-							<batch:aggregator doc:name="Batch Aggregator" doc:id="b8c0fe8c-c0ae-4ee1-9a2f-76b78afb5b7a" size="100">
-								<ee:transform doc:name="Transform Message" doc:id="44f9bee1-3fa4-41ef-aeeb-049b2ce2072b" >
-											<ee:message >
-												<ee:set-payload ><![CDATA[%dw 2.0
+							<salesforce:upsert doc:name="Upsert" doc:id="68694f18-4a38-4322-acf7-dc7ba9ebf053" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}">
+											<salesforce:records><![CDATA[#[%dw 2.0
 output application/json
 ---
-payload map read( $, 'application/json')]]></ee:set-payload>
-											</ee:message>
-										</ee:transform>
-										<salesforce:upsert doc:name="Upsert" doc:id="68694f18-4a38-4322-acf7-dc7ba9ebf053" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
-								<logger level="INFO" doc:name="Logger" doc:id="7e8e944d-02f8-462e-810f-7b13d558ced7" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]" />
-							</batch:aggregator>
-						</batch:step>
+payload]]]></salesforce:records>
+										</salesforce:upsert>
+									<logger level="INFO" doc:name="Logger" doc:id="0dfe4e5e-54e2-4253-b061-7d6c35225b5a" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"Landed Cost upsereted successfully for : " ++ vars.metadata.srtxExternalID[0] ++ " : " ++ payload.successful]'/>
+						
+</batch:step>
 					</batch:process-records>
 							<batch:on-complete>
 								<ee:transform doc:name="Transform Message" doc:id="7c304c09-4845-464d-b47a-ea1dc62a7493">

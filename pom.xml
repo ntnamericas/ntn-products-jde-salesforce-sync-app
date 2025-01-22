@@ -13,7 +13,8 @@
 		<munit.skipTests>true</munit.skipTests>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<mule.maven.plugin.version>4.2.0</mule.maven.plugin.version>
+		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<app.runtime>4.6.9</app.runtime>
 	</properties>
 
 	<build>

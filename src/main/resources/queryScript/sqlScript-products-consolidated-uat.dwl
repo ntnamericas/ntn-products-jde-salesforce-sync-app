@@ -16,8 +16,8 @@ IBLTLV_IBLITM AS (
 	-- Step 2: Get IBLITM and IBLTLV from F4102 based on criteria
     SELECT TRIM(Y2.IBLITM) AS IBLITM, TRIM(Y2.IBLTLV) AS IBLTLV
     FROM CRPDTA.F4102 Y2
-							  
-    WHERE (TRIM(Y2.IBUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y2.IBTDAY) >= $(vars.previousProductsJobRun.time)) and trim(Y2.IBMCU) = '1801'
+    where trim(Y2.IBMCU) = '1801'
+    --WHERE (TRIM(Y2.IBUPMJ) >= $(vars.productsJobRun.date) AND TRIM(Y2.IBTDAY) >= $(vars.previousProductsJobRun.time)) and trim(Y2.IBMCU) = '1801'
 ),
 
 IMDRAW_IMSRTX_IBLTLV AS (
@@ -92,12 +92,12 @@ LEFT JOIN IMDRAW_IMSRTX_IBLTLV T16
 LEFT JOIN IMLITM_IMSRTX_IBLTLV T17 
     ON TRIM(T17.IMLITM) = TRIM(T2.IMLITM)
  
-WHERE ((T2.IMUPMJ >= $(vars.productsJobRun.date) AND T2.IMTDAY >= $(vars.previousProductsJobRun.time)) 
-        or (T1.IBUPMJ >= $(vars.productsJobRun.date) AND T1.IBTDAY >= $(vars.previousProductsJobRun.time))) 
+WHERE --((T2.IMUPMJ >= $(vars.productsJobRun.date) AND T2.IMTDAY >= $(vars.previousProductsJobRun.time)) 
+      --  or (T1.IBUPMJ >= $(vars.productsJobRun.date) AND T1.IBTDAY >= $(vars.previousProductsJobRun.time))) 
 	--	or (T12.DRUPMJ >= $(vars.productsJobRun.date) AND T12.DRUPMT >= $(vars.previousProductsJobRun.time)))
-        and trim(T1.IBMCU) = '1801'
+     --   and trim(T1.IBMCU) = '1801'
     --    and T3.DRDLO1 is not null
-   --  and T2.IMLITM = '6002LLU/5C[TB00]'
+   T2.IMLITM = '6002LLU/5C[TB00]' and trim(T1.IBMCU) = '1801'
 GROUP BY
     T1.IBPRP4, T1.IBLITM, T1.IBSTKT, T1.IBSRP4, T1.IBMCU, T1.IBSRP2, T1.IBSRP1, T2.IMLITM,
     T2.IMSRTX, T3.DRDLO1, T12.DRKY, T12.DRDL01, T13.DRKY, T13.DRDL01,
