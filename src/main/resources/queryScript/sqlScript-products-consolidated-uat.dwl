@@ -93,7 +93,7 @@ LEFT JOIN IMLITM_IMSRTX_IBLTLV T17
     ON TRIM(T17.IMLITM) = TRIM(T2.IMLITM)
  
 WHERE ((T2.IMUPMJ >= $(vars.productsJobRun.date) AND T2.IMTDAY >= $(vars.previousProductsJobRun.time)) 
-        or (T1.IBUPMJ >= $(vars.productsJobRun.date) AND T1.IBTDAY >= $(vars.previousProductsJobRun.time))) 
+        or (T1.IBUPMJ >= $(vars.productsJobRun.date) AND T1.IBTDAY >= $(vars.previousProductsJobRun.time))
 		or (T12.DRUPMJ >= $(vars.productsJobRun.date) AND T12.DRUPMT >= $(vars.previousProductsJobRun.time)))
    and trim(T1.IBMCU) = '1801'
    and T3.DRDLO1 is not null
