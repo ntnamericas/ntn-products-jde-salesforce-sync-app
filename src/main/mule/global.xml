@@ -119,7 +119,7 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 	</email:smtp-config> -->
 	<email:smtp-config name="NTN-SMTP-Details"
 		doc:name="Email SMTP" doc:id="65c45e71-0c73-48af-8ac6-95d8e35e2fcc"
-		from="mulesoftsmtpuser@ntnusa.com">
+		from="${secure::smtp.user}">
 		<email:smtp-connection host="${smtp.host}"
 			port="${smtp.port}" user="${secure::smtp.user}"
 			password="${secure::smtp.password}">

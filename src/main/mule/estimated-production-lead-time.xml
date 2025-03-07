@@ -54,6 +54,7 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 			objectStore="Object_store_Previous_eplt_Job_Run">
 			<os:value><![CDATA[#[vars.epltjobRun]]]></os:value>
 		</os:store>
+		<error-handler ref="global-error-handler" />
 	</flow>
 	<sub-flow name="estimated-lead-time-min-max-subflow" doc:id="c6f64cbe-6586-4689-911f-80e608f56f58">
 		<ee:transform doc:name="Transform Message" doc:id="14a3fcd2-1a9e-42e3-8e81-11b8c1576ac9">

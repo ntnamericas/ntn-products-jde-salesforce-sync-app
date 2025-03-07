@@ -94,9 +94,9 @@ LEFT JOIN IMLITM_IMSRTX_IBLTLV T17
     ON TRIM(T17.IMLITM) = TRIM(T2.IMLITM)
  
 WHERE (
-    (T2.IMUPMJ >= $(vars.previousProductsJobRun.date) OR (T2.IMUPMJ = $(vars.previousProductsJobRun.date) AND T2.IMTDAY > $(vars.previousProductsJobRun.time))) 
-    OR (T1.IBUPMJ >= $(vars.previousProductsJobRun.date) OR (T1.IBUPMJ = $(vars.previousProductsJobRun.date) AND T1.IBTDAY > $(vars.previousProductsJobRun.time)))
-   -- OR (T12.DRUPMJ >= $(vars.previousProductsJobRun.date) OR (T12.DRUPMJ = $(vars.previousProductsJobRun.date) AND T12.DRUPMT > $(vars.previousProductsJobRun.time)))
+    (T2.IMUPMJ > $(vars.previousProductsJobRun.date) OR (T2.IMUPMJ = $(vars.previousProductsJobRun.date) AND T2.IMTDAY > $(vars.previousProductsJobRun.time))) 
+    OR (T1.IBUPMJ > $(vars.previousProductsJobRun.date) OR (T1.IBUPMJ = $(vars.previousProductsJobRun.date) AND T1.IBTDAY > $(vars.previousProductsJobRun.time)))
+   -- OR (T12.DRUPMJ > $(vars.previousProductsJobRun.date) OR (T12.DRUPMJ = $(vars.previousProductsJobRun.date) AND T12.DRUPMT > $(vars.previousProductsJobRun.time)))
         ) 
 AND TRIM(T1.IBMCU) = '1801'
 

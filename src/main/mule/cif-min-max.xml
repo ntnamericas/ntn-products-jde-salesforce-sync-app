@@ -54,6 +54,7 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 			objectStore="Object_store_Previous_cif_Job_Run">
 			<os:value><![CDATA[#[vars.cifjobRun]]]></os:value>
 		</os:store>
+		<error-handler ref="global-error-handler" />
 	</flow>
 	<sub-flow name="cif-min-max-subFlow" doc:id="27fd8699-5cd7-4ab1-8e67-ca6c39542d55">
 		<ee:transform doc:name="Transform Message" doc:id="61334e8e-3434-41cb-8812-1d316e97dbd1">

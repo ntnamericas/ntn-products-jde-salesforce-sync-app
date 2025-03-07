@@ -1,7 +1,13 @@
 %dw 2.0
 output application/json
+
+fun concatKeyValue(DRKY, DRDL01, pvalue) =
+	  (if (!isEmpty(DRKY))
+	  [trim(DRKY),trim(DRDL01)] filter (!isEmpty($)) joinBy  "-"
+	  else
+		pvalue)
 ---
-(vars.productMaster map (item, index) -> (
+(payload map (item, index) -> (
 {
         drawExternalIDLanded:
         if (
@@ -28,10 +34,10 @@ output application/json
     Block_Code__c : trim(item.IBPRP4),
     Block_Code_Description__c : trim(item.DRDL01_IBPRP4),
     Brand__c : trim(item.IBSRP4),
-    Detailed_Product_Type__c : trim(item.DRKY_SRP2) ++ "-" ++ trim(item.DRDL01_SRP2),
+    Detailed_Product_Type__c : concatKeyValue(trim(item.DRKY_SRP2),trim(item.DRDL01_SRP2),""),
     Detail_Product_Code__c : trim(item.IBSRP2),
-    Detail_Product_Description__c : trim(item.DRKY_SRP2) ++ "-" ++ trim(item.DRDL01_SRP2),
-    General_Product_Code__c : trim(item.DRKY_SRP1) ++ "-" ++ trim(item.DRDL01_SRP1),
+    Detail_Product_Description__c : concatKeyValue(trim(item.DRKY_SRP2),(item.DRDL01_SRP2),""),
+    General_Product_Code__c : concatKeyValue(trim(item.DRKY_SRP1),trim(item.DRDL01_SRP1),""),
     General_Product_Description__c : trim(item.DRDL01_SRP1),
     Family : if(trim(item.DRKY_SRP5) != "")((vars.excelData.Sheet1 filter ((sheetItem) -> sheetItem.SRP5 == trim(item.DRKY_SRP5)))[0].Product_Family__c)else "",
     Industry_P_N__c :  trim(item.IMSRTX),
