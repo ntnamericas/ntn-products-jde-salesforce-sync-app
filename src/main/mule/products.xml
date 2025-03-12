@@ -393,35 +393,56 @@ output application/json
 										<ee:variables >
 										</ee:variables>
 		</ee:transform>
-									<batch:aggregator doc:name="Batch Aggregator" doc:id="a806d24f-b8c6-4a00-9e54-4ce553f0fa5a" size="200">
-										<ee:transform doc:name="Transform Message" doc:id="2a577704-6be3-402e-b7f0-02780ee1822b">
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="a806d24f-b8c6-4a00-9e54-4ce553f0fa5a" streaming="true">
+										<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="2a577704-6be3-402e-b7f0-02780ee1822b">
 											<ee:message>
 												<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
-payload map read( $, 'application/json') distinctBy ((item, index) -> item)]]></ee:set-payload>
+&#45;&#45;-
+payload map read( $, 'application/json') //distinctBy ((item, index) -> item)&#93;&#93;></ee:set-payload>
 											</ee:message>
-										</ee:transform>
-										<choice doc:name="Choice" doc:id="abcdb722-ca86-4614-9c8a-96e48e6cf508" >
-											<when expression='#[payload != null]'>
-												<logger level="INFO" doc:name="Logger" doc:id="a8c6ecba-4953-4a38-8e47-32822284c731" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"Starting Landed Cost Upsert for DRAW "]'/>
-												<salesforce:upsert doc:name="Upsert" doc:id="073d3b2d-9324-4a38-bf28-2091531982e7" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" >
+										</ee:transform> [STUDIO] -->
+										<choice doc:name="Choice" doc:id="abcdb722-ca86-4614-9c8a-96e48e6cf508">
+											<when expression="#[payload != null]">
+												<logger level="INFO" doc:name="Logger" doc:id="a8c6ecba-4953-4a38-8e47-32822284c731" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"Starting Landed Cost Upsert for DRAW "]' />
+												<salesforce:upsert doc:name="Upsert" doc:id="073d3b2d-9324-4a38-bf28-2091531982e7" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}">
 												</salesforce:upsert>
 												<logger level="INFO" doc:name="Logger" doc:id="917a4821-8aa5-4e0f-8b3e-cad4bc43f7af" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"Landed Cost upsereted successfully for : " ++ vars.metadata.drawExternalID[0] ++ " : " ++ payload.successful]' />
 											</when>
-											<otherwise >
-												<logger level="INFO" doc:name="Logger" doc:id="ff2fe0b0-8459-4cde-afe8-496fe9e2ce62" message="Nothing to Update in this run"/>
+											<otherwise>
+												<logger level="INFO" doc:name="Logger" doc:id="ff2fe0b0-8459-4cde-afe8-496fe9e2ce62" message="Nothing to Update in this run" />
 											</otherwise>
 										</choice>
 									</batch:aggregator>
+									<logger level="INFO" doc:name="Logger" doc:id="e03c71f3-fb9f-46bd-a436-8a8277d1f268" message="#[payload]"/>
 						</batch:step>
-						<batch:step name="Handle-Batch-Errors" doc:id="548dbd5b-1c69-4e10-bddd-2489b59bff08" acceptPolicy="ONLY_FAILURES">
+						<!-- [STUDIO:"Batch_Step1"]<batch:step name="Batch_Step1" doc:id="70336b30-3051-420f-835f-0a71aa849fa5" >
+									<ee:transform doc:name="Transform Message" doc:id="24a1d3dc-2ccc-4d05-95b2-89b639dbaefe" >
+										<ee:message >
+											<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-payload>
+										</ee:message>
+									</ee:transform>
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="ddfb883e-82b9-4c96-8894-809269591166" size="100">
+										<ee:transform doc:name="Transform Message" doc:id="d71746fc-972b-4739-a9ed-7fe6180630f9" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+									</batch:aggregator>
+								</batch:step> [STUDIO] -->
+								<batch:step name="Handle-Batch-Errors" doc:id="548dbd5b-1c69-4e10-bddd-2489b59bff08" acceptPolicy="ONLY_FAILURES">
 					<ee:transform doc:name="Transform Message" doc:id="bc8a16ee-cc98-4596-86bf-d3417b7e9540">
 						<ee:message>
 							<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-payload]]></ee:set-payload>
+payload map read( $, 'application/json') distinctBy ((item, index) -> item)]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
 					<batch:aggregator doc:name="Batch Aggregator" doc:id="65aa30bc-f856-4d02-8705-2da1ef3fae02" size="100">
@@ -528,15 +549,27 @@ output application/json
 }))[0]]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-									<batch:aggregator doc:name="Batch Aggregator" doc:id="b815077b-7b4c-4e8a-82bd-e97544331cd5" size="200">
-										<ee:transform doc:name="Transform Message" doc:id="a291e3c3-fa43-49b1-ad67-ca2572bcf20b">
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="b815077b-7b4c-4e8a-82bd-e97544331cd5" streaming="true">
+										<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="a291e3c3-fa43-49b1-ad67-ca2572bcf20b">
 											<ee:message>
 												<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
-payload map read( $, 'application/json') distinctBy ((item, index) -> item)]]></ee:set-payload>
+&#45;&#45;-
+payload map read( $, 'application/json') //distinctBy ((item, index) -> item)
+
+%dw 2.0
+output application/json
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
 											</ee:message>
-										</ee:transform>
+											<ee:variables >
+												<ee:set-variable variableName="varPayload" ><![CDATA[%dw 2.0
+output application/java
+&#45;&#45;-
+{
+}&#93;&#93;></ee:set-variable>
+											</ee:variables>
+										</ee:transform> [STUDIO] -->
 										<choice doc:name="Choice" doc:id="41ca8b2b-fce2-414a-8f5d-6c25effcf468" >
 											<when expression='#[payload != null]'>
 												<logger level="INFO" doc:name="Logger" doc:id="8b79cefe-1bfe-444c-9cff-8bd87a8a8da7" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"Starting Landed Cost Upsert for SRTX "]'/>
@@ -549,6 +582,7 @@ payload map read( $, 'application/json') distinctBy ((item, index) -> item)]]></
 											</otherwise>
 										</choice>
 									</batch:aggregator>
+									<logger level="INFO" doc:name="Logger" doc:id="efbd577d-9a53-4e3a-b555-8fb6818c6c34" message="#[payload]"/>
 						
 						</batch:step>
 						<batch:step name="Handle-Batch-Errors" doc:id="8b2c8373-19ee-41fb-bbff-fff504b8ca5c" acceptPolicy="ONLY_FAILURES">
@@ -557,7 +591,7 @@ payload map read( $, 'application/json') distinctBy ((item, index) -> item)]]></
 							<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-payload]]></ee:set-payload>
+payload map read( $, 'application/json') distinctBy ((item, index) -> item)]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
 					<batch:aggregator doc:name="Batch Aggregator" doc:id="347930d3-9397-415e-ad22-e84fb52565da" size="100">
