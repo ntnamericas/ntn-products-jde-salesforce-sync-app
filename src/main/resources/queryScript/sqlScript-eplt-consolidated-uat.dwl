@@ -8,6 +8,7 @@ IBLTLV_IBLITM AS (
     FROM CRPDTA.F4102 TT1 
     WHERE (TRIM(TT1.IBUPMJ) >= $(vars.previousepltJobRun.date) AND TRIM(TT1.IBTDAY) >= $(vars.previousepltJobRun.time)) and trim(TT1.IBMCU) = '1801'
 	--where TRIM(TT1.IBLITM)='6002LLU/5C[TB00]'
+	--WHERE TT1.IBLITM in ('4T-02420[J100]','4T-02420[JB00]','4T-02473[J100]','4T-02473[JB00]') and trim(TT1.IBMCU) = '1801'
 ),
 IBLTLV_IBPRP1_IBSRP4 AS (
     ---Query PRP1 and SRP4 where LITM = (IBLTLV_IBLITM) and IBMCU=1801 Hold variables IBPRP1 and IBSRP4
@@ -57,6 +58,6 @@ LEFT JOIN IMDRAW_IMSRTX_IBLTLV T4 ON
 --WHERE T2.IMLITM = '6002LLU/5C[TB00]' and trim(T1.IBMCU) = '1801' 
 WHERE ((TRIM(T2.IMUPMJ) >= $(vars.previousepltJobRun.date) AND TRIM(T2.IMTDAY) >= $(vars.previousepltJobRun.time)) 
    OR (TRIM(T1.IBUPMJ) >= $(vars.previousepltJobRun.date) AND TRIM(T1.IBTDAY) >= $(vars.previousepltJobRun.time))) and trim(T1.IBMCU) = '1801'
-	
+--WHERE T2.IMLITM in ('4T-02420[J100]','4T-02420[JB00]','4T-02473[J100]','4T-02473[JB00]') and trim(T1.IBMCU) = '1801'
 
 GROUP BY T3.IBPRP1, T3.IBSRP4, T4.IMDRAW, T4.IMSRTX"

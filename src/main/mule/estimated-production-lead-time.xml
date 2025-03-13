@@ -66,9 +66,13 @@ readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dw
 			</ee:message>
 		</ee:transform>
 		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="525c42fe-7d1d-46bf-a4ff-8c3b123a74ef" expression="#[payload]" />
-		<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="Oracle_JDE_Database_Config">
+		<try doc:name="Try" doc:id="3c525c9b-2166-4054-9e0e-a6a81ee65749" >
+			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="Oracle_JDE_Database_Config">
 			<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
+			<error-handler ref="global-error-handler" />
+		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="03707cad-e3d0-4bd0-95f6-231e0387add8" message='#["Estimated Lead Time Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
 		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
 			<ee:message>
 				<ee:set-payload resource="dwl/estimated-lead-time-min-max-subflow.xml.dwl" />
@@ -84,7 +88,7 @@ readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dw
 			<when expression="#[payload !=[]]">
 				<scatter-gather doc:name="Scatter-Gather" doc:id="19428e76-6b5d-4624-b32e-99b06b640b48" >
 					<route >
-						<batch:job jobName="elpt-base-part-batch-job" doc:id="822de1d2-9a46-47e0-8474-0e1adc89ab42" >
+						<batch:job jobName="elpt-base-part-batch-job" doc:id="822de1d2-9a46-47e0-8474-0e1adc89ab42" blockSize="${batch.size}">
 							<batch:process-records >
 								<batch:step name="base-batch-step" doc:id="2d9cd116-d822-41c9-976b-52adc04bcb6a" acceptExpression='#[payload.drawExternalID != null  and payload.drawExternalID !="" and payload.drawExternalID != [] and payload.drawExternalID != [""]  ]'>
 									<ee:transform doc:name="store the externalId" doc:id="1d43370c-8027-4ac4-82e6-5659fefe32b6">
@@ -107,9 +111,13 @@ readUrl("classpath://queryScript/sqlScript-eplt-imdraw-$(p('mule.env')).dwl","te
 					</ee:variables>
 				</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="031fa04b-48e7-4d38-b2e6-01d1c4ecefef" expression="#[payload]" />
-									<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="Oracle_JDE_Database_Config">
+									<try doc:name="Try" doc:id="21ffae84-491a-4456-b8f7-3ff0258a0cf5" >
+										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="Oracle_JDE_Database_Config">
 					<db:sql><![CDATA[#[payload]]]></db:sql>
 				</db:select>
+										<error-handler ref="global-error-handler" />
+									</try>
+									<logger level="INFO" doc:name="Logger" doc:id="d0613bcd-e2e8-48d9-830b-fd51d001b75f" message='#["Min Max for BASE Parts: Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
 									<ee:transform doc:name="Transform Message" doc:id="f916d3d3-6fd9-4e69-83f3-bbb30cca03d3">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -123,15 +131,15 @@ output application/json
 			</ee:message>
 		</ee:transform>
 									<logger level="INFO" doc:name="Logger" doc:id="19e6441f-6c8d-4135-9ae9-0fc80c1b25ef" message="#[payload]" />
-									<batch:aggregator doc:name="Batch Aggregator" doc:id="73b1b546-409d-4fe5-b967-54d63d4878ba" size="100">
-										<ee:transform doc:name="Transform Message" doc:id="e2307687-28f9-4202-9e08-73612f323821" >
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="73b1b546-409d-4fe5-b967-54d63d4878ba" streaming="true">
+										<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="e2307687-28f9-4202-9e08-73612f323821" >
 											<ee:message >
 												<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
----
-payload map read( $, 'application/json')]]></ee:set-payload>
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
 											</ee:message>
-										</ee:transform>
+										</ee:transform> [STUDIO] -->
 										<ee:transform doc:name="Transform Message" doc:id="b9808cd7-6029-4638-98f7-ba755d2f5b8f" >
 											<ee:message >
 												<ee:set-payload ><![CDATA[%dw 2.0
@@ -140,7 +148,11 @@ output application/json
 payload[0]]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
-										<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
+										<logger level="INFO" doc:name="Logger" doc:id="d8dcc311-8324-433e-9bb6-044ddbbe1df2" message="Logging BEFOR for Estimated Lead Time for BASE PARTS"/>
+										<try doc:name="Try" doc:id="b639f2f5-e5b0-4891-8f82-9ad46d04637e" >
+											<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
+											<error-handler ref="global-error-handler" />
+										</try>
 										<logger level="INFO" doc:name="Logger" doc:id="3929cf74-53cd-435f-9603-75215abb1b4f" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>
 									</batch:aggregator>
 								</batch:step>
@@ -152,7 +164,7 @@ payload[0]]]></ee:set-payload>
 						</batch:job>
 					</route>
 					<route >
-						<batch:job jobName="eplt-indusry-part-batch-job" doc:id="3c02836a-380e-46f8-bf7c-80fe6eca610c" >
+						<batch:job jobName="eplt-indusry-part-batch-job" doc:id="3c02836a-380e-46f8-bf7c-80fe6eca610c" blockSize="${batch.size}">
 							<batch:process-records >
 								<batch:step name="industry-batch-step" doc:id="2af4d222-0ae0-44a4-b733-5b510514fce4" acceptExpression='#[payload.srtxExternalID != null  and payload.srtxExternalID !="" and payload.srtxExternalID != [] and payload.srtxExternalID != [""] ]'>
 									<ee:transform doc:name="store the externalId" doc:id="4dfa9e41-38b2-48d3-85fa-4f434dfe1967">
@@ -175,9 +187,13 @@ readUrl("classpath://queryScript/sqlScript-eplt-imsrtx-$(p('mule.env')).dwl","te
 			</ee:variables>
 		</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="3f6a677a-1d35-4e14-b01c-beabac161a91" expression="#[payload]" />
-									<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="Oracle_JDE_Database_Config">
+									<try doc:name="Try" doc:id="9c9ae99a-4612-45d6-870b-f48af1923528" >
+										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="Oracle_JDE_Database_Config">
 					<db:sql><![CDATA[#[payload]]]></db:sql>
 				</db:select>
+										<error-handler ref="global-error-handler" />
+									</try>
+									<logger level="INFO" doc:name="Logger" doc:id="d5678788-c14e-4ccf-9590-012ae5c8315a" message='#["Min Max for INDUSTRY Parts: Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
 									<ee:transform doc:name="Transform Message" doc:id="c2110ead-8fe3-45a2-b5ad-fa0ef67195cd">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -191,15 +207,15 @@ output application/json
 			</ee:message>
 		</ee:transform>
 									<logger level="INFO" doc:name="Logger" doc:id="5e3aa011-a177-41bd-8a0a-07ad8c5e9faa" message="#[payload]" />
-									<batch:aggregator doc:name="Batch Aggregator" doc:id="86cc34d3-07f4-4f38-92de-15e88c64194c" size="100">
-										<ee:transform doc:name="Transform Message" doc:id="b5b09927-4336-408b-a0a0-736221433b1e" >
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="86cc34d3-07f4-4f38-92de-15e88c64194c" streaming="true">
+										<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="b5b09927-4336-408b-a0a0-736221433b1e" >
 											<ee:message >
 												<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
----
-payload map read( $, 'application/json')]]></ee:set-payload>
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
 											</ee:message>
-										</ee:transform>
+										</ee:transform> [STUDIO] -->
 										<ee:transform doc:name="Transform Message" doc:id="b01ffb11-447e-43ef-84df-21ae584a1d17" >
 											<ee:message >
 												<ee:set-payload ><![CDATA[%dw 2.0
@@ -208,7 +224,11 @@ output application/json
 payload[0]]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
-										<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+										<logger level="INFO" doc:name="Logger" doc:id="d10c18bf-a0cd-49be-88bc-1f7d9bd97456" message="Logging BEFOR for Estimated Lead Time for INDUSTRY PARTS"/>
+										<try doc:name="Try" doc:id="49c5ca1a-424b-4934-bc86-44f487b464a8" >
+											<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+											<error-handler ref="global-error-handler" />
+										</try>
 										<logger level="INFO" doc:name="Logger" doc:id="5b7ae072-807d-447c-85ab-073e3ed64b18" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>
 									</batch:aggregator>
 								</batch:step>

@@ -81,7 +81,7 @@ smtp:
 products:
   initialState : "started"
 cif:
-  initialState : "started"
+  initialState : "stopped"
 eplt:
-  initialState : "started"
+  initialState : "stopped"
   

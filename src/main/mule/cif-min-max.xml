@@ -44,6 +44,17 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 			objectStore="Object_store_Previous_cif_Job_Run">
 			<os:default-value><![CDATA[#[vars.cifjobRun]]]></os:default-value>
 		</os:retrieve>
+		<ee:transform doc:name="Transform Message" doc:id="bcea2b08-8ded-4b75-9d49-fc62d3f32132" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="previouscifJobRun" ><![CDATA[{
+  "date": "125071",
+  "time": "092530"
+}
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
 		<logger level="INFO" doc:name="Logger"
 			doc:id="adcd6a80-cd8a-41c6-ac9e-f478fb35b5bb"
 			message='Calling "cif-min-max-subFlow"' category="${log.category}" />
@@ -66,9 +77,12 @@ readUrl("classpath://queryScript/sqlScript-cif-consolidated-$(p('mule.env')).dwl
 			</ee:message>
 		</ee:transform>
 		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="f9573423-e714-4234-87d4-838343785524" expression="#[payload]" />
-		<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="Oracle_JDE_Database_Config">
+		<try doc:name="Try" doc:id="1bd57439-b667-4d42-b69e-fdff103647cd" >
+			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="Oracle_JDE_Database_Config">
 			<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
+			<error-handler ref="global-error-handler" />
+		</try>
 		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
 			<ee:message>
 				<ee:set-payload resource="dwl/cif-min-max-subFlow.dwl" />
@@ -90,7 +104,7 @@ vars.initialResultSet map {
 			<when expression="#[payload !=[]]">
 				<scatter-gather doc:name="Scatter-Gather" doc:id="500e96d7-fba6-4213-897f-8e1d9d87e04b">
 					<route>
-						<batch:job jobName="cif-base-part-batch-job" doc:id="67ae987b-c883-4ea3-adb6-5f40c1c1c764" maxFailedRecords="-1">
+						<batch:job jobName="cif-base-part-batch-job" doc:id="67ae987b-c883-4ea3-adb6-5f40c1c1c764" maxFailedRecords="-1" blockSize="${batch.size}">
 							<batch:process-records>
 								<batch:step name="cif-base-batch-step" doc:id="638c7dfa-5829-48ef-a1b1-cebfe178ced2" acceptExpression='#[payload.drawExternalID != null  and payload.drawExternalID !="" and payload.drawExternalID != [] and payload.drawExternalID != [""]  ]'>
 									<ee:transform doc:name="store the externalId" doc:id="18c6236e-45ba-4f90-99d2-82f41d0fafbe">
@@ -114,9 +128,12 @@ readUrl("classpath://queryScript/sqlScript-councs-imdraw-$(p('mule.env')).dwl","
 			</ee:variables>
 		</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="fd5a9466-9c09-468d-9e64-3979686606a8" expression="#[payload]" />
-									<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="Oracle_JDE_Database_Config">
+									<try doc:name="Try" doc:id="7d3fa535-40e3-449d-9094-f11c7509caf2" >
+										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="Oracle_JDE_Database_Config">
 			<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
+										<error-handler ref="global-error-handler" />
+									</try>
 									<ee:transform doc:name="Transform Message" doc:id="f916d3d3-6fd9-4e69-83f3-bbb30cca03d3">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -130,15 +147,15 @@ output application/json
 			</ee:message>
 		</ee:transform>
 									<logger level="INFO" doc:name="Logger" doc:id="19e6441f-6c8d-4135-9ae9-0fc80c1b25ef" message="#[payload]" />
-									<batch:aggregator doc:name="Batch Aggregator" doc:id="e7d7b345-e576-4597-a9ca-79ffcad51fcd" size="100">
-										<ee:transform doc:name="Transform Message" doc:id="49e8cb21-6492-40d6-90a9-a2ff6ba49135">
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="e7d7b345-e576-4597-a9ca-79ffcad51fcd" streaming="true">
+										<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="49e8cb21-6492-40d6-90a9-a2ff6ba49135">
 											<ee:message>
 												<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
-payload map read( $, 'application/json')]]></ee:set-payload>
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
 											</ee:message>
-										</ee:transform>
+										</ee:transform> [STUDIO] -->
 										<ee:transform doc:name="Transform Message" doc:id="e99184bd-dc82-4932-9c1a-8e5e385be943" >
 											<ee:message >
 												<ee:set-payload ><![CDATA[%dw 2.0
@@ -147,7 +164,10 @@ output application/json
 payload[0]]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
-										<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
+										<try doc:name="Try" doc:id="0ca202a2-9601-4a5f-a36f-bcbe8733210c" >
+											<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
+											<error-handler ref="global-error-handler" />
+										</try>
 										<logger level="INFO" doc:name="Logger" doc:id="6de65943-5149-456a-9366-48b49e7ce126" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>
 									</batch:aggregator>
 								</batch:step>
@@ -159,7 +179,7 @@ payload[0]]]></ee:set-payload>
 						</batch:job>
 					</route>
 					<route>
-						<batch:job jobName="cif-industry-part-batch-job" doc:id="80707201-a406-45c3-8944-9999ca5d1013" maxFailedRecords="-1">
+						<batch:job jobName="cif-industry-part-batch-job" doc:id="80707201-a406-45c3-8944-9999ca5d1013" maxFailedRecords="-1" blockSize="${batch.size}">
 							<batch:process-records>
 								<batch:step name="cif-industry-batch-step" doc:id="f43842d1-c3b8-4fd6-b4a7-213cf5ab96ab" acceptExpression='#[payload.srtxExternalID != null  and payload.srtxExternalID !="" and payload.srtxExternalID != []  and payload.srtxExternalID != [""] ]'>
 									<ee:transform doc:name="store the externalId" doc:id="4ee90d0c-c1be-4ab4-81f4-766d960e00b3">
@@ -183,9 +203,12 @@ readUrl("classpath://queryScript/sqlScript-councs-imsrtx-$(p('mule.env')).dwl","
 			</ee:variables>
 		</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="5d09a307-7a10-4eea-8ceb-781362a2f861" expression="#[payload]" />
-									<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="Oracle_JDE_Database_Config">
+									<try doc:name="Try" doc:id="a4307e93-7a96-4eea-8463-3177e3440c75" >
+										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="Oracle_JDE_Database_Config">
 			<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
+										<error-handler ref="global-error-handler" />
+									</try>
 									<ee:transform doc:name="Transform Message" doc:id="c2110ead-8fe3-45a2-b5ad-fa0ef67195cd">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -199,15 +222,15 @@ output application/json
 			</ee:message>
 		</ee:transform>
 									<logger level="INFO" doc:name="Logger" doc:id="5e3aa011-a177-41bd-8a0a-07ad8c5e9faa" message="#[payload]" />
-									<batch:aggregator doc:name="Batch Aggregator" doc:id="73ddaad8-a55c-4b64-8a2f-393379bc8c57" size="100">
-										<ee:transform doc:name="Transform Message" doc:id="24a2918b-68d0-4d64-92f1-f19b0f63a611">
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="73ddaad8-a55c-4b64-8a2f-393379bc8c57" streaming="true">
+										<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="24a2918b-68d0-4d64-92f1-f19b0f63a611">
 											<ee:message>
 												<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
-payload map read( $, 'application/json')]]></ee:set-payload>
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
 											</ee:message>
-										</ee:transform>
+										</ee:transform> [STUDIO] -->
 										<ee:transform doc:name="Transform Message" doc:id="57f25799-568c-488a-806b-08bd9ffe51f3" >
 											<ee:message >
 												<ee:set-payload ><![CDATA[%dw 2.0
@@ -216,7 +239,10 @@ output application/json
 payload[0]]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
-										<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+										<try doc:name="Try" doc:id="f2af5366-2dd1-4a23-9bb3-f857f9224c3a" >
+											<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+											<error-handler ref="global-error-handler" />
+										</try>
 										<logger level="INFO" doc:name="Logger" doc:id="770ba8cf-b24f-4f47-af63-bcdba6ceec8d" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>
 									</batch:aggregator>
 								</batch:step>
