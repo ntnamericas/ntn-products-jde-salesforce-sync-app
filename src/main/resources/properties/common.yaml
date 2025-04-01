@@ -12,10 +12,12 @@ api:
   majorVersion: "v1"
 
 os.ttl: "3"
+os.interval: "3"
 
 sf:
   object: "Product2"
   extId: "External_ID__c"
+  responseTimeout: "30"
 
 
 log.level: "INFO"
@@ -24,6 +26,7 @@ log.category: "TRACKING"
 waitArgs: "10000"
 response.timeout: "15000"
 batch.size : "100"
+batch.maxFailedRecords: "-1"
 
 max:
   retries: "3"
@@ -68,6 +71,7 @@ http:
   reconnectionAttempts: "5"
   retryCount: "5"
   retryFrequency: "3000"
+  responseTimeout: "30"
   
 scheduler:
   frequency: "30"

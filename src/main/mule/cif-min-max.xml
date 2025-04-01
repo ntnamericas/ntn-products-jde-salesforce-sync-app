@@ -44,7 +44,7 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 			objectStore="Object_store_Previous_cif_Job_Run">
 			<os:default-value><![CDATA[#[vars.cifjobRun]]]></os:default-value>
 		</os:retrieve>
-		<ee:transform doc:name="Transform Message" doc:id="bcea2b08-8ded-4b75-9d49-fc62d3f32132" >
+		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="bcea2b08-8ded-4b75-9d49-fc62d3f32132" >
 			<ee:message >
 			</ee:message>
 			<ee:variables >
@@ -52,9 +52,9 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
   "date": "125071",
   "time": "092530"
 }
-]]></ee:set-variable>
+&#93;&#93;></ee:set-variable>
 			</ee:variables>
-		</ee:transform>
+		</ee:transform> [STUDIO] -->
 		<logger level="INFO" doc:name="Logger"
 			doc:id="adcd6a80-cd8a-41c6-ac9e-f478fb35b5bb"
 			message='Calling "cif-min-max-subFlow"' category="${log.category}" />

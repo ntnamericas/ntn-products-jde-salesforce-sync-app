@@ -1,7 +1,7 @@
 %dw 2.0
 output application/csv header=true
 ---
-payload map (item, index) -> {
+(payload map (item, index) -> {
     Block_Code_Description: item.a.Block_Code_Description__c,
     Brand: item.a.Brand__c,
     Detailed_Product_Type: item.a.Detailed_Product_Type__c,
@@ -19,4 +19,4 @@ payload map (item, index) -> {
     CPA_MCA_Detail_Type_Code: item.a.CPA_MCA_Detail_Type_Code__c,
     CPA_MCA_Detail_Type_Desc: item.a.CPA_MCA_Detail_Type_Desc__c,
     External_ID__c: payload.External_ID__c[index]
-}
+})

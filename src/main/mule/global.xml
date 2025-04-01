@@ -31,27 +31,25 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 			user="${secure::db.user}" password="${secure::db.password}"
 			serviceName="${db.svc}" port="${db.port}">
 			<reconnection failsDeployment="true">
-				<reconnect-forever />
+				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 			</reconnection>
 		</db:oracle-connection>
 	</db:config>
 	<os:object-store
 		name="Object_store_Previous_eplt_Job_Run" doc:name="Object store"
-		doc:id="98455782-5b25-409a-8b70-ef3392be003a" entryTtl="3"
+		doc:id="98455782-5b25-409a-8b70-ef3392be003a" entryTtl="${os.ttl}"
 		entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
-		config-ref="ObjectStore_Config" />
+		config-ref="ObjectStore_Config" expirationInterval="${os.interval}"/>
 	<os:object-store
 		name="Object_store_Previous_Products_Job_Run" doc:name="Object store"
 		doc:id="79335253-ffbe-49b5-97b6-3eea6df57e69" entryTtl="${os.ttl}"
 		entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
-		config-ref="ObjectStore_Config" />
+		config-ref="ObjectStore_Config" expirationInterval="${os.interval}"/>
 
 	<salesforce:sfdc-config name="Salesforce_Config"
 		doc:name="Salesforce Config"
 		doc:id="33ac0030-519e-4c37-b4a9-6120a30fdc04">
-		<salesforce:basic-connection
-			username="${sf.user}" password="${secure::sf.password}"
-			securityToken="${secure::sf.token}" url="${sf.authURL}" />
+		<salesforce:oauth-user-pass-connection consumerKey="${secure::sf.key}" consumerSecret="${secure::sf.secret}" username="${sf.user}" password="${secure::sf.password}" securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}" />
 	</salesforce:sfdc-config>
 	<os:config name="ObjectStore_Config"
 		doc:name="ObjectStore Config"
@@ -76,19 +74,19 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 		doc:name="Configuration properties"
 		doc:id="64d736cf-0ac8-4b81-8833-e5e8b66c2ece"
 		file="properties/common.yaml" />
-	<global-property doc:name="Global Property"
+	<!-- <global-property doc:name="Global Property"
 		doc:id="2de92508-c928-40dd-9a64-ed30ef4a8b62" name="encrypt.key"
-		value="secure12345" />
+		value="replaceme" /> -->
 	<os:object-store
 		name="Object_store_Previous_cif_Job_Run" doc:name="Object store"
-		doc:id="f721686e-1d15-4a21-b491-93416e13b2ba" entryTtl="3"
+		doc:id="f721686e-1d15-4a21-b491-93416e13b2ba" entryTtl="${os.ttl}"
 		entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
-		config-ref="ObjectStore_Config" />
+		config-ref="ObjectStore_Config" expirationInterval="${os.interval}"/>
 	<http:request-config
-		name="HTTP_Request_configuration"
+		name="PricebooksAPI_Request_configuration"
 		doc:name="HTTP Request configuration"
 		doc:id="6cdc2ca3-904a-4804-b5e8-d85147cc28f6"
-		basePath="${pricebooks.basePath}">
+		basePath="${pricebooks.basePath}" sendCorrelationId="ALWAYS">
 		<http:request-connection
 			host="${pricebooks.host}" port="${pricebooks.port}" protocol="HTTPS" />
 	</http:request-config>
@@ -99,7 +97,11 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 		<salesforce-composite:oauth-user-pass-connection
 			consumerKey="${secure::sf.key}" consumerSecret="${secure::sf.secret}"
 			username="${sf.user}" password="${secure::sf.password}"
-			securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}" />
+			securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}" responseTimeout="${sf.responseTimeout}">
+			<reconnection failsDeployment="true" >
+				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}"/>
+			</reconnection>
+		</salesforce-composite:oauth-user-pass-connection>
 	</salesforce-composite:composite-config>
 	<!-- <email:smtp-config name="Email_SMTP"
 		doc:name="Email SMTP" doc:id="59d1998f-e7db-476f-80c6-a88da0e96c58"
@@ -129,4 +131,5 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 			</email:properties>
 		</email:smtp-connection>
 	</email:smtp-config>
+	
 </mule>
