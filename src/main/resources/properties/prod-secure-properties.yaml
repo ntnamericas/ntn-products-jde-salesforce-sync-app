@@ -1,13 +1,13 @@
 db:
-  password: "![uMrGHbWyEL54QEMh+18S/A==]"
+  password: "![qShUQca+XRPO80VgwER8uQ==]"
   user: "![7QqCW9QjsxUigvR2UPZDgw==]"
   
 #ntn web service details
 sf:
-  password : "![hRt1ri9KnH5UalfO4hI4Vg==]"
-  token : "![1O3V3uqG9wtByGHznFQhsc1Q4BYp3HsPQbnzOU3Ieso=]" 
-  key: "![x/CzuYzqCo6gD0ZANTB1PXcZfvrstbY4Zv6lQf+nnituQawgbvIt9qJcbO5Vi+ZC5Jh0rXnHv4kOZBDB3lz2dfVQcbyEyA7VBNrmkZZ6QZ8sbYyk3OR7Ug==]"
-  secret: "![4JCZ/tP9UvTssYat4vq8ASvtVOCdjQXSAA7rCbhwDtp48I03NZJE+6poXrIoW9JabgImZYfzgFuWS4I0TSjPGfEXelO21Gk0]"
+  password : "![2YNZt1lm+MRm7qkhAuEumw==]"
+  token : "![pxS/bMSXsKXRM/Ph2PWwFqE1Lk9fXlTzNNGx3zwfAz8=]" 
+  key: "![EcXBTeWMMaVCEEi9WUaGSqE09nvQOCXB8A0KkGVWkyZOBaY1+m0B7te3JSWrKUPCfd9wxS9PIB5P3AFn9zrs5pg815nBHF0V3G8dltx78IhdjTzU31pnEA==]"
+  secret: "![/R6rU6BCBm6HSsMJWPKTSd97S0VwGuQdqnnCRpYHdgJfJ7hb/Va5860uD6lVzmQ/95UtFnynjLulyE8DlNQGAyDIjV/aQhK2]"
  
 smtp:
   user: "![hRt1ri9KnH7VngaJcayGZ0D8arLBERHy1f3i+Ca4XPI=]"
