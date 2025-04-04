@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<!-- [STUDIO:"create-update-products-subflow123"]<sub-flow name="create-update-products-subflow123"
+		doc:id="2cc32425-1eeb-4f0b-88f0-2175de2c2631">
+		<choice doc:name="choice-create-or-update-products"
+			doc:id="d5f3efa0-6aeb-44d4-a773-b97e695b3714"
+			tracking:enable-default-events="true">
+			<when
+				expression='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;!(isEmpty(payload."Update")) and !(isEmpty(payload."Create")) and !(isEmpty(payload."noOperation"))&#93;'>
+				<scatter-gather doc:name="Scatter-Gather"
+					doc:id="8e670b20-4793-4729-b1b6-12a1e0001553">
+					<route>
+						<flow-ref doc:name="update-products-subflow"
+							doc:id="8cf3c60b-f8c5-4acb-9247-821bbe0fb970"
+							name="update-products-subflow" />
+					</route>
+					<route>
+						<flow-ref doc:name="create-products-subflow"
+							doc:id="bebfcf69-b870-4a28-acb3-bb0619ae360d"
+							name="create-products-subflow" />
+					</route>
+					<route>
+						<ee:transform doc:name="Transform Message1"
+							doc:id="47c26590-d8ca-4d5c-a60c-2d3fffde4a33">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload.noOperation&#93;&#93;></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<logger level="INFO" doc:name="Logger"
+							doc:id="929b9e5c-cdab-4d88-8786-164254e10ff1"
+							message="Invalid Logger" />
+						<flow-ref doc:name="send-update-email"
+							doc:id="c1a58e70-df85-45a0-ab71-5bcdb60cca3d"
+							name="sendUpdateEmail" />
+					</route>
+				</scatter-gather>
+			</when>
+			<when
+				expression='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;!(isEmpty(payload."Update")) and !(isEmpty(payload."Create")) and (isEmpty(payload."noOperation"))&#93;'>
+				<scatter-gather doc:name="Scatter-Gather"
+					doc:id="24a0c624-2ebb-4c20-a357-45015b5e0104">
+					<route>
+						<flow-ref doc:name="update-products-subflow"
+							doc:id="d9b41af2-826c-4d25-9d9a-524d81e02100"
+							name="update-products-subflow" />
+					</route>
+					<route>
+						<flow-ref doc:name="create-products-subflow"
+							doc:id="bd0d2d57-a62f-4b15-a8e7-c39b850d20bc"
+							name="create-products-subflow" />
+					</route>
+				</scatter-gather>
+			</when>
+			<when
+				expression='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;(isEmpty(payload."Update")) and !(isEmpty(payload."Create")) and (isEmpty(payload."noOperation"))&#93;'>
+				<flow-ref doc:name="create-products-subflow"
+					doc:id="8ba0d3b3-3c8f-4c2e-a471-19ebefd4b572"
+					name="create-products-subflow" />
+			</when>
+			<when
+				expression='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;!(isEmpty(payload."Update")) and (isEmpty(payload."Create")) and (isEmpty(payload."noOperation"))&#93;'>
+				<flow-ref doc:name="update-products-subflow"
+					doc:id="a6f40a1a-7b1c-4d25-a937-a6440cdb560d"
+					name="update-products-subflow" />
+			</when>
+			<when expression='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;!(isEmpty(payload."Update")) and (isEmpty(payload."Create")) and !(isEmpty(payload."noOperation"))&#93;'>
+				<scatter-gather doc:name="Scatter-Gather" doc:id="f01bdc33-8ff5-4811-901e-31042b60763c" >
+					<route >
+						<flow-ref doc:name="update-products-subflow" doc:id="96024b19-6a49-4157-8825-032078d8db49" name="update-products-subflow" />
+					</route>
+					<route >
+						<ee:transform doc:name="Transform Message" doc:id="f60f6581-e5e3-4e9a-84ea-00fa15338fd3" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload.noOperation&#93;&#93;></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<logger level="INFO" doc:name="Logger" doc:id="929484bd-9e36-4bdc-b375-9e6acbcf56cb" message="Invalid Logger" />
+						<flow-ref doc:name="send-update-email" doc:id="75daadc7-b6dc-4887-bf0e-cc1db9b48741" name="sendUpdateEmail" />
+					</route>
+				</scatter-gather>
+			</when>
+			<when expression='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;(isEmpty(payload."Update")) and !(isEmpty(payload."Create")) and !(isEmpty(payload."noOperation"))&#93;'>
+				<scatter-gather doc:name="Scatter-Gather" doc:id="4e8c9b1f-0ead-4e10-9a3a-1b4338f86248" >
+					<route >
+						<flow-ref doc:name="create-products-subflow" doc:id="3978c7e0-4b41-46b9-8783-a29bde749ae6" name="create-products-subflow" />
+					</route>
+					<route >
+						<ee:transform doc:name="Transform Message" doc:id="28c811c4-ed37-431d-8b35-aac76d60b93f" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload.noOperation&#93;&#93;></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<logger level="INFO" doc:name="Logger" doc:id="c5a26742-1175-4d7d-8bff-afcdcc79a488" message="Invalid Logger" />
+						<flow-ref doc:name="send-update-email" doc:id="f4549cd7-9725-4f70-9929-c077795d5350" name="sendUpdateEmail" />
+					</route>
+				</scatter-gather>
+			</when>
+			<when expression='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;(isEmpty(payload."Update")) and (isEmpty(payload."Create")) and !(isEmpty(payload."noOperation"))&#93;'>
+				<flow-ref doc:name="no-operation" doc:id="306976ab-67ee-49a0-9a6e-5c60829b71d9" name="no-operation-subflow"/>
+			</when>
+			<otherwise>
+				<flow-ref doc:name="no-operation" doc:id="fc070616-a6f5-4790-b07e-3e1d202ab371" name="no-operation-subflow"/>
+							
+</otherwise>
+						</choice>
+	</sub-flow> [STUDIO] -->
+	<flow name="enable-if-required" doc:id="1cb1a4c7-3a4f-4897-8b3d-8801cc2f0c29" >
+		<logger level="INFO" doc:name="Logger" doc:id="39a876f2-3152-4eac-b492-bfaa3bae8281" message="enable if required"/>
+	</flow>
+	
+</mule>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	
+	<sub-flow name="update-products-subflow" doc:id="75fbbac3-3774-448d-b273-d04e7814dae3">
+		<ee:transform doc:name="create-var-updatedata" doc:id="c2488a15-d132-46b2-9f77-118a7a78f07c">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="updatedata"><![CDATA[%dw 2.0
+output application/json
+---
+//payload.Update filter ((item, index) -> item.id != null) distinctBy ((item) -> item.id)
+payload filter ((item, index) -> item.id != null)]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+		<try doc:name="Try" doc:id="fd80a154-d6b4-48b4-94ea-ac3f1a0b0aee">
+			<logger level="INFO" doc:name="Logger" doc:id="a3e9e2f9-6860-4d8c-917c-410a25e3b4df" message="#['\n Starting Products Update : ' ++ sizeOf(payload)]" />
+			<salesforce:update doc:name="Update" doc:id="78f7182b-ff93-4d4e-9e39-2e4efaa32647" config-ref="Salesforce_Config" type="${sf.object}">
+			</salesforce:update>
+			<logger level="INFO" doc:name="Logger" doc:id="90a7b33b-4354-44f8-9374-86047251601e" message='#["\n Salesforce Update Operation Complete"]' />
+			<error-handler ref="global-error-handler" />
+								</try>
+		<choice doc:name="choose-to-send-failure-emails-only" doc:id="5a645d51-11dd-42fa-80eb-ebb84e60f265" >
+			<when expression="#[payload.successful != true and indexOf(payload.successful, true) &lt; 0]">
+				<ee:transform doc:name="Transform Message" doc:id="97a289da-d742-4ca9-8e3c-c46b4c9b42b3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+//var externalIds = testVar.Update.External_ID__c
+---
+if (payload.successful == true) {Successful : payload.items map ((item, index) -> {
+
+    Id: item.id,
+    Status: item.successful
+
+} )}
+else (payload.items filter ((item, index) -> item.exception != null) map(item,index) -> {
+	"MessageSender": "Update Products Failed",
+	failedId: item.id,
+  	"Status Code": item.statusCode default "No Status Code Received from Salesforce",
+	message: item.exception.message default "No Error Message Received from Salesforce",
+  	payload: if(item.statusCode != "DUPLICATE VALUE") (vars.updatedata filter ((item1, index) -> item1.id == item.id) map ((filteredItem) -> filteredItem) ) else ""
+	
+})]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="status" ><![CDATA["Status Update for Update Products"]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="2ee79ea6-825c-4294-b10e-7e5d066c90be" message='#[payload]' />
+				<flow-ref doc:name="send-update-email" doc:id="2f418e63-798e-4f53-a929-c4037da34dfe" name="sendUpdateEmail" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="0e883d56-ec1e-4405-bf18-8176f27bdeb7" message='#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.items map ((item, index) -&gt; {&#10;&#10;    Id: item.id,&#10;    Status: item.successful&#10;&#10;} )}&#10;else (payload.items map() -&gt; {&#10;	"MessageSender": "Update Products Failed",&#10;	failedId: $.id,&#10;	message: $.message,&#10;	//External_ID__c: vars.testVar.Update.External_ID__c,&#10;	//payload: vars.testVar.Update&#10;	&#10;})]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	
+	</mule>

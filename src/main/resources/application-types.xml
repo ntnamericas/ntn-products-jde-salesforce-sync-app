@@ -17,4 +17,5 @@ type: string]]></types:shape>
   <types:enrichment select="#a37a0a48-a3cb-4f7f-b574-dbc65e2d5203"/>
   <types:enrichment select="#ad435e26-f5ae-4007-b14b-65d691c3e141"/>
   <types:enrichment select="#b741970e-2311-4ba2-b721-a8573101d2d3"/>
+  <types:enrichment select="#c51fe765-208c-4a60-a459-15099d80b22e"/>
 </types:mule>

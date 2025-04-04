@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	
+	<sub-flow name="create-products-subflow" doc:id="7904d4b6-3567-4025-a8b0-c8e9d164fcab">
+		<ee:transform doc:name="create-var-createdata" doc:id="1b345967-0945-48e7-bb63-c94fb8bf5b01">
+									<ee:message />
+									<ee:variables>
+										<ee:set-variable variableName="createdata"><![CDATA[%dw 2.0
+output application/json
+---
+//(payload.Create filter ((item, index) -> item.id == null))
+(payload filter ((item, index) -> item.id == null))]]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+		<try doc:name="Try" doc:id="55de1f86-980f-4e74-8801-0c003e5b8b0b">
+									<logger level="INFO" doc:name="Logger" doc:id="8eec9926-4ed0-4b34-b2b0-53b5de8c815e" message="#['\n Starting Products Create : '  ++ sizeOf(payload)]" />
+									<salesforce:create doc:name="Create" doc:id="355be057-dcf5-4184-b9eb-e218c34d80f3" config-ref="Salesforce_Config" type="${sf.object}" >
+			</salesforce:create>
+			<logger level="INFO" doc:name="Logger" doc:id="922076c1-e37c-444d-8f2e-d58b37330487" message='#["\n Salesforce Create Operation Complete"]'/>
+			<error-handler ref="global-error-handler" />
+								</try>
+		<choice doc:name="Choice" doc:id="d5b933bb-4a71-44c5-aa7a-190c3e1680ac" >
+			<when expression="#[payload.successful != true and indexOf(payload.successful, true) &lt; 0]">
+				<ee:transform doc:name="Transform Message" doc:id="2f4edf2f-886b-4973-9c61-1d0bc6eab199">
+									<ee:message>
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+//var externalIds = testVar.Update.External_ID__c
+---
+if (payload.successful == true) {Successful : payload.items map ((item, index) -> {
+
+    Id: item.id,
+    Status: item.successful
+
+} )}
+else (payload.items filter ((item, index) -> item.exception != null) map(item,index) -> {
+	"MessageSender": "Create Products Failed",
+	failedId: item.id,
+  	"Status Code": item.statusCode default "No Status Code Received from Salesforce",
+	message: item.exception.message default "No Error Message Received from Salesforce",
+  	payload: if(item.statusCode != "DUPLICATE VALUE") (vars.createdata filter ((item1, index) -> item1.id == item.id) map ((filteredItem) -> filteredItem) ) else ""
+	
+})]]></ee:set-payload>
+									</ee:message>
+									<ee:variables>
+										<ee:set-variable variableName="product2id"><![CDATA[%dw 2.0
+output application/json
+---
+payload.items map ( {Product2Id: $.payload.id})
+]]></ee:set-variable>
+										<ee:set-variable variableName="status"><![CDATA["Status Update for Create Products"]]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="85debb2e-e53a-4055-82b5-ae0af32da26b" message='#[payload]' />
+				<flow-ref doc:name="send-update-email" doc:id="d2a32a08-4992-4744-bce0-17d30f5e02a4" name="sendUpdateEmail" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="55817f4a-1c53-4545-93fc-dea72d9f3aef" message='#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.items map ((item, index) -&gt; {&#10;&#10;    Id: item.id,&#10;    Status: item.successful&#10;&#10;} )}&#10;else (payload.items map() -&gt; {&#10;	"MessageSender": "Update Products Failed",&#10;	failedId: $.id,&#10;	message: $.message,&#10;	External_ID__c: vars.testVar.Create.External_ID__c,&#10;	payload: vars.testVar.Update&#10;	&#10;})]'/>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="get-pricebook-id" doc:id="b4ce3d8a-a7f7-4aa3-857c-8a364cb30308" name="get-pricebook-id" />
+		<ee:transform doc:name="map-http-request-payload" doc:id="e14082b9-1ec3-440e-83cf-0720661c19b4">
+									<ee:message>
+				<ee:set-payload resource="dwl/map-http-request-payload.dwl" />
+									</ee:message>
+								</ee:transform>
+		<async doc:name="Async" doc:id="53f1a78d-cba8-4da7-87ed-fe0c37a7ae99">
+									<try doc:name="Try" doc:id="ae2168c1-4bbf-48a9-94bd-5b559a4a35b6">
+										<http:request method="POST" doc:name="Request" doc:id="fbdf35ae-8e41-4720-ab86-1a788e39956e" config-ref="PricebooksAPI_Request_configuration" path="${pricebooks.uri}" />
+										<error-handler ref="global-error-handler" />
+									</try>
+									<logger level="INFO" doc:name="Logger" doc:id="78983db2-327f-414c-8d02-21888b148cbb" message='#["\n Request to Pricebooks API Completed."]' />
+								</async>
+	</sub-flow>
+	
+	</mule>

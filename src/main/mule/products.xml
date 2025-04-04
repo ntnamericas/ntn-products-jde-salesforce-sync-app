@@ -16,6 +16,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="0cf0f307-1f09-4234-b582-2b75224a000e" />
 	<flow name="prodcuts-schedule-flow"
 		doc:id="6c64299d-8db3-4c46-a5d2-1def002fce65" tracking:enable-default-events="true" initialState="${products.initialState}">
 		<scheduler doc:name="prodcuts-scheduler" doc:id="0c38b9fb-7af5-47a4-a2b7-866e400c5559" >
@@ -43,8 +44,8 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 			</ee:message>
 			<ee:variables >
 				<ee:set-variable variableName="previousProductsJobRun" ><![CDATA[{
-  "date": "125087",
-  "time": "175943"
+  "date": "125094",
+  "time": "041739"
 }&#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
@@ -141,7 +142,25 @@ vars.metadata]]></ee:set-payload>
 				<scatter-gather doc:name="Scatter-Gather" doc:id="ca87f6bb-121f-4300-a217-590d033bd50e" maxConcurrency="1" >
 					<route >
 						<ee:transform doc:name="drawExternalIDLanded" doc:id="0f3a8652-c510-4bd8-a101-bc2e4e6a934a" >
-							<ee:message />
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var drawArray = payload map (item) ->
+  if (item.drawExternalIDLanded? ) item - "srtxExternalIDLanded" else null
+
+var srtxArray = payload map (item) ->
+  if (item.srtxExternalIDLanded? )  item - "drawExternalIDLanded" else null
+
+var neitherArray = payload filter (item) ->
+  !(item.srtxExternalIDLanded? or item.drawExternalIDLanded? )
+
+---
+{
+  //"srtxResults": srtxArray filter ((item) -> item != null),
+  "drawResults": drawArray filter ((item) -> item != null),
+  //"noOperation": neitherArray
+}]]></ee:set-payload>
+							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="exId" ><![CDATA[%dw 2.0
 output application/json
@@ -149,19 +168,69 @@ output application/json
 "drawExternalIDLanded"]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
+						<ee:transform doc:name="Transform Message" doc:id="8bf14ca6-dd77-4be3-8d35-11d924347459" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(vars.exId == "drawExternalIDLanded")
+  payload.drawResults map() -> {
+    "a": $ - "drawExternalIDLanded" ++ "External_ID__c": $."drawExternalIDLanded" 
+  }
+
+ else
+(payload.srtxResults map() -> {
+    "a": $ - "srtxExternalIDLanded" ++ "External_ID__c": $."srtxExternalIDLanded" 
+  })]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="993cb74a-45cb-43c5-91e6-2919807faf8f" message='#["\n Base Part External ID Landed Created. Calling products-flow-reference"]'/>
 						<logger level="DEBUG" doc:name="Debug-Logger" doc:id="9a0d6f30-1367-4e11-80a9-36bbe4ac64da" message="#[vars.exId]"/>
 						<flow-ref doc:name="products-flow-reference" doc:id="42e134c6-0eca-453b-9c91-04f819656e26" name="productsFlow" />
 					</route>
 					<route >
 						<ee:transform doc:name='srtxExternalIDLanded"' doc:id="9f803598-bb6b-4273-a95d-cf0ce2c7de2a" >
-							<ee:message />
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var drawArray = payload map (item) ->
+  if (item.drawExternalIDLanded? ) item - "srtxExternalIDLanded" else null
+
+var srtxArray = payload map (item) ->
+  if (item.srtxExternalIDLanded? )  item - "drawExternalIDLanded" else null
+
+var neitherArray = payload filter (item) ->
+  !(item.srtxExternalIDLanded? or item.drawExternalIDLanded? )
+
+---
+{
+  "srtxResults": srtxArray filter ((item) -> item != null),
+  //"drawResults": drawArray filter ((item) -> item != null),
+  //"noOperation": neitherArray
+}]]></ee:set-payload>
+							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="exId" ><![CDATA[%dw 2.0
 output application/json
 ---
 "srtxExternalIDLanded"]]></ee:set-variable>
 							</ee:variables>
+						</ee:transform>
+						<ee:transform doc:name="Transform Message" doc:id="e5c87113-58fb-43db-9ece-92915f4b7fc3" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(vars.exId == "drawExternalIDLanded")
+  payload.drawResults map() -> {
+    "a": $ - "drawExternalIDLanded" ++ "External_ID__c": $."drawExternalIDLanded" 
+  }
+
+ else
+(payload.srtxResults map() -> {
+    "a": $ - "srtxExternalIDLanded" ++ "External_ID__c": $."srtxExternalIDLanded" 
+  })]]></ee:set-payload>
+							</ee:message>
 						</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="57888520-9b3e-4a6c-bb2e-8e9deae8acf4" message='#["\n INDUSTRY Part External ID Landed Created. Calling products-flow-reference"]'/>
 						<logger level="DEBUG" doc:name="Debug-Logger" doc:id="aa3ad80e-6956-441d-b38e-cc514c413032" message="#[vars.exId]"/>
@@ -186,7 +255,7 @@ output application/json
 						</ee:variables>
 					</ee:transform>
 					<choice doc:name="Choice" doc:id="d8ac2292-6e52-4f71-b497-d9df1025bc42" >
-						<when expression='#[payload."External_ID__c" != null]'>
+						<when expression='#[payload.a."External_ID__c" != null]'>
 							<try doc:name="Try" doc:id="bd34a49d-19f5-4516-9fa2-db97da294911">
 						<salesforce:query doc:name="Check Base External Id in Salesforce" doc:id="7bdad15c-8a8e-4d36-8312-11c4373a15c8" config-ref="Salesforce_Config" target="SFExtId">
 						<reconnect-forever />
@@ -194,7 +263,7 @@ output application/json
 						<salesforce:parameters><![CDATA[#[output application/java
 ---
 {
-	externalId__c : "'" ++ payload."External_ID__c" ++ "'"
+	externalId__c : "'" ++ payload.a."External_ID__c" ++ "'"
 }]]]></salesforce:parameters>
 					</salesforce:query>
 						<error-handler ref="global-error-handler" />
@@ -224,6 +293,7 @@ output application/json
 						</when>
 						<otherwise >
 							<logger level="INFO" doc:name="Logger" doc:id="fe0e03bf-49d8-4da2-9b22-89b9d9a66340" message='#["\n Invalid Record beacuse the External_ID__c From Initial Mapping is identified as null. "]' />
+							<logger level="INFO" doc:name="Logger" doc:id="991a4341-8c93-463e-8ae3-98e342363b85" message='#["\n" ++ payload.a]'/>
 						</otherwise>
 					</choice>
 					<batch:aggregator doc:name="Batch Aggregator" doc:id="4cbb27f0-2198-4ed4-bc33-19fb815eb493" size="200">
@@ -235,34 +305,43 @@ output application/json
 ---
 payload map read( $, 'application/json')]]></ee:set-payload>
 							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="aggregatorValue" ><![CDATA[%dw 2.0
+output application/json
+---
+payload map read( $, 'application/json')]]></ee:set-variable>
+							</ee:variables>
 						</ee:transform>
 						<ee:transform doc:name="split-update-create-records" doc:id="c51fe765-208c-4a60-a459-15099d80b22e" >
 							<ee:message >
 								<ee:set-payload resource="dwl/split-update-create-records.dwl" />
 							</ee:message>
+							<ee:variables >
+							</ee:variables>
 						</ee:transform>
-						<flow-ref doc:name="create-update-products-subflow" doc:id="18585d7a-1d6b-4a7b-b9ca-f145c90848c6" name="create-update-products-subflow" />
+						<flow-ref doc:name="create-update-products-subflow" doc:id="18585d7a-1d6b-4a7b-b9ca-f145c90848c6" name="create-update-products-subflow" targetValue="#[aggregatorValue]"/>
 						<logger level="INFO" doc:name="Logger" doc:id="ff165725-d3ed-463f-b0a8-9504409f9854" message='#["\n Batch Aggregator Processing Complete"]'/>
 					</batch:aggregator>
 				
 </batch:step>
 				<batch:step name="handle-products-batch-errors" doc:id="ea9671b7-5bd0-4148-a241-e3ac8fd00e35" acceptPolicy="ONLY_FAILURES">
-					<batch:aggregator doc:name="Batch Aggregator" doc:id="098d35ac-023a-423d-9a8f-b26100e60688" size="200">
+					<!-- [STUDIO:"Batch Aggregator"]<batch:aggregator doc:name="Batch Aggregator" doc:id="098d35ac-023a-423d-9a8f-b26100e60688" size="200">
 						<ee:transform doc:name="Transform Message" doc:id="b41138a4-ed98-454d-bc02-1c173445ec27">
 						<ee:message>
 							<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
-payload map read( $, 'application/json')]]></ee:set-payload>
+&#45;&#45;-
+payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
 						</ee:message>
 					</ee:transform>
-						<email:send doc:name="send-batch-error-emails" doc:id="720b2eb3-30c9-41bb-ac7d-2918f2d59fb5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" >
+						<logger level="INFO" doc:name="Logger" doc:id="8768b61a-cef5-4d5a-928b-eac2757928c3" message="#[payload&#93;"/>
+						<email:send doc:name="send-batch-error-emails" doc:id="720b2eb3-30c9-41bb-ac7d-2918f2d59fb5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')&#93;" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;&#93;" >
 							<email:body contentType="text/html" encoding="UTF-8" >
 								<email:content ><![CDATA[#[%dw 2.0
 	output application/xml
 	skipNullOn="everywhere"
 
-	---
+	&#45;&#45;-
 	{
 		"html":{
 			"body":{
@@ -294,12 +373,16 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 				}
 			}
 		}
-	}]]]></email:content>
+	}&#93;&#93;&#93;></email:content>
 							</email:body>
-							<email:attachments ><![CDATA[#[{"Products_Failures.csv": payload}]]]></email:attachments>
+							<email:attachments ><![CDATA[#[{"Products_Failures.csv": payload}&#93;&#93;&#93;></email:attachments>
 						</email:send>
-					</batch:aggregator>
-					<logger level="INFO" doc:name="Logger" doc:id="f6509213-9c6e-4ae5-8d6d-9148a137c03d" message='#["\n Handling Products Batch Errors."]'/>
+					</batch:aggregator> [STUDIO] -->
+					<set-payload value="#[Batch::getStepExceptions()]" doc:name="Set Payload" doc:id="1f708caa-d356-4dba-a536-7ffbb92c04a3" />
+					<foreach doc:name="For Each" doc:id="14f819e6-b683-4429-a11c-b3f6b20e4215" collection="#[payload.values()]">
+						<logger level="INFO" doc:name="Logger" doc:id="f6509213-9c6e-4ae5-8d6d-9148a137c03d" message='#["\n Handling Products Batch Errors."]' />
+						<logger level="INFO" doc:name="Logger" doc:id="f5395580-e24a-4e87-a787-91f94a18ff96" message="#[payload]"/>
+					</foreach>
 				</batch:step>
 			</batch:process-records>
 			<batch:on-complete >
@@ -316,225 +399,9 @@ payload]]></ee:set-payload>
 		</batch:job>
 		<error-handler ref="global-error-handler" />
 	</flow>
-	<sub-flow name="create-update-products-subflow" doc:id="8bf76dd4-3d39-4d49-b0ee-2b3d3d3011fb">
-		<choice doc:name="choice-create-or-update-products" doc:id="8f933d09-9142-4c7c-a3d8-f9bc9b0f4b25" tracking:enable-default-events="true">
-							<when expression='#[%dw 2.0&#10;output application/json&#10;---&#10;!(isEmpty(payload."Update")) and !(isEmpty(payload."Create"))]'>
-								<scatter-gather doc:name="Scatter-Gather" doc:id="b0097aad-6301-4ff9-b643-dda85ec48ff0">
-					<route>
-						<flow-ref doc:name="update-products-subflow" doc:id="9702832b-747d-456d-abfd-b572e4828d70" name="update-products-subflow" />
-					</route>
-					<route>
-						<flow-ref doc:name="create-products-subflow" doc:id="0f93d6f9-e4b1-494a-aeda-cc9b30856d25" name="create-products-subflow" />
-					</route>
-				</scatter-gather>
-							</when>
-							<!-- <when expression="#[%dw 2.0&#10;output application/json&#10;-&#45;&#45;&#10;(payload.External_ID__c distinctBy ((item, index) -&gt; item))[0] == null]">
-								<logger level="INFO" doc:name="Logger" doc:id="c6cee319-9cb1-49be-a1c4-3244e1c87a89" message='#[["/n Invalid Record"] ++ [payload]]'/>
-								<logger level="INFO" doc:name="Logger" doc:id="e5767301-a2ff-4ee0-ad2d-77c5710baabe" message='#["/n Size of Invalid Payloads : " ++ sizeOf(payload)]'/>
-							</when> -->
-							<when expression='#[%dw 2.0&#10;output application/json&#10;---&#10;(isEmpty(payload."Update")) and !(isEmpty(payload."Create"))]'>
-				<flow-ref doc:name="create-products-subflow" doc:id="f088a901-9286-4cc6-a074-1633ca3d4006" name="create-products-subflow" />
-			</when>
-			<when expression='#[%dw 2.0&#10;output application/json&#10;---&#10;!(isEmpty(payload."Update")) and (isEmpty(payload."Create"))]'>
-				<flow-ref doc:name="update-products-subflow" doc:id="f40774b0-2fee-4179-8091-02eaeed000db" name="update-products-subflow" />
-			</when>
-			<otherwise>
-								<ee:transform doc:name="Transform Message" doc:id="3f43be43-7067-40d0-ad65-cf28f23c2bee">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-payload.noOperation]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="1652686f-d4ea-4986-97df-9369e159d97c" message='#["/n Invalid Condition"]' />
-								<flow-ref doc:name="send-update-email" doc:id="534193b8-5057-4768-bdb4-46d18be3c74f" name="sendUpdateEmail" />
-				<logger level="INFO" doc:name="Logger" doc:id="2dc50b73-7f77-4925-9897-442c52d54d4b" />
-							</otherwise>
-						</choice>
-	</sub-flow>
-	<sub-flow name="create-products-subflow" doc:id="6c6911db-b16f-4294-a6ff-b32eddd06158">
-		<ee:transform doc:name="create-var-createdata" doc:id="a37a0a48-a3cb-4f7f-b574-dbc65e2d5203">
-									<ee:message />
-									<ee:variables>
-										<ee:set-variable variableName="createdata"><![CDATA[%dw 2.0
-output application/json
----
-//(payload.Create filter ((item, index) -> item.id == null))
-(payload.Create filter ((item, index) -> item.id == null))]]></ee:set-variable>
-									</ee:variables>
-								</ee:transform>
-		<try doc:name="Try" doc:id="6c047946-eef9-4f3e-92e9-ea78239f19bd">
-									<logger level="INFO" doc:name="Logger" doc:id="c0d80a16-573d-47a2-9d6c-6690b3ec2f0b" message="#['\n Starting Products Create : '  ++ sizeOf(payload.Create)]" />
-			<!-- [STUDIO:"Set Variable"]<set-variable value="#[payload&#93;" doc:name="Set Variable" doc:id="c12994ae-315f-4cec-ab89-619b2c43d92b" variableName="testVar"/> [STUDIO] -->
-			<salesforce:create type="${sf.object}" doc:name="Create" doc:id="6138d1bb-7c3e-41d9-82dc-c4aeb18aa502" config-ref="Salesforce_Config">
-									<salesforce:records><![CDATA[#[payload.Create]]]></salesforce:records>
-								</salesforce:create>
-									<logger level="INFO" doc:name="Logger" doc:id="fa72c5c7-763b-4610-aad6-d773011fb0b3" message='#["\n Salesforce Create Operation Complete"]'/>
-			<error-handler ref="global-error-handler" />
-								</try>
-		<choice doc:name="Choice" doc:id="5d0a8549-c0fa-4565-a3d8-ef0eb255b8af" >
-			<when expression="#[payload.successful != true and indexOf(payload.successful, true) &gt; 0]">
-				<ee:transform doc:name="Transform Message" doc:id="b741970e-2311-4ba2-b721-a8573101d2d3">
-									<ee:message>
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json skipNullOn="everywhere"
-//var externalIds = testVar.Update.External_ID__c
----
-if (payload.successful == true) {Successful : payload.items map ((item, index) -> {
-
-    Id: item.id,
-    Status: item.successful
-
-} )}
-else (payload.items map(item,index) -> {
-	"MessageSender": "Create Products Failed",
-	failedId: item.id,
-  "Status Code": item.statusCode default "No Status Code Received from Salesforce",
-	message: item.exception.message default "No Error Message Received from Salesforce",
-  payload: if(item.statusCode != "DUPLICATE VALUE") (vars.createdata filter ((item1, index) -> item1.id == item.id) map ((filteredItem) -> filteredItem) ) else ""
 	
-})
-
-]]></ee:set-payload>
-									</ee:message>
-									<ee:variables>
-										<ee:set-variable variableName="product2id"><![CDATA[%dw 2.0
-output application/json
----
-payload.items map ( {Product2Id: $.payload.id})
-]]></ee:set-variable>
-										<ee:set-variable variableName="status"><![CDATA["Status Update for Create Products"]]></ee:set-variable>
-									</ee:variables>
-								</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="e0166bee-40ba-4df5-bf99-7371e8915009" message='#[payload]' />
-				<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="7df1963b-f5b5-41d8-9a19-09d78a559837">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
-//var externalIds = testVar.Update.External_ID__c
-&#45;&#45;-
-if (payload.successful == true) {Successful : payload.items map ((item, index) -> {
-
-    Id: item.id,
-    Status: item.successful
-
-} )}
-else (payload.items map(item,index) -> {
-	"MessageSender": "Create Products Failed",
-	failedId: item.id,
-  "Status Code": item.statusCode default "No Status Code Received from Salesforce",
-	message: item.exception.message default "No Error Message Received from Salesforce",
-  payload: if(item.statusCode != "DUPLICATE VALUE") (vars.testVar.Create filter ((item1, index) -> item1.id == item.id) map ((filteredItem) -> filteredItem) ) else ""
 	
-})
-
-&#93;&#93;></ee:set-payload>
-			</ee:message>
-		</ee:transform> [STUDIO] -->
-				<!-- [STUDIO:"Remove Variable"]<remove-variable doc:name="Remove Variable" doc:id="6b16e857-7fd8-4fdb-8100-379b5b37a65c" variableName="testVar" /> [STUDIO] -->
-				<flow-ref doc:name="send-update-email" doc:id="2fd3368c-e94c-40db-91db-5badfa7291e0" name="sendUpdateEmail" />
-			</when>
-			<otherwise >
-				<logger level="INFO" doc:name="Logger" doc:id="7453153b-b19f-4de5-8030-b7240eaf4c74" message='#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.items map ((item, index) -&gt; {&#10;&#10;    Id: item.id,&#10;    Status: item.successful&#10;&#10;} )}&#10;else (payload.items map() -&gt; {&#10;	"MessageSender": "Update Products Failed",&#10;	failedId: $.id,&#10;	message: $.message,&#10;	External_ID__c: vars.testVar.Create.External_ID__c,&#10;	payload: vars.testVar.Update&#10;	&#10;})]'/>
-				<!-- [STUDIO:"Remove Variable"]<remove-variable doc:name="Remove Variable" doc:id="d0981e54-cb3d-4a19-84e9-b7fec32ab411" variableName="testVar"/> [STUDIO] -->
-			</otherwise>
-		</choice>
-		<flow-ref doc:name="get-pricebook-id" doc:id="7e45eda9-7be5-4a54-a4ec-b56fef9cc165" name="get-pricebook-id" />
-		<ee:transform doc:name="map-http-request-payload" doc:id="0bb71b40-27e4-4cdc-8719-9bd04c5f09d6">
-									<ee:message>
-				<ee:set-payload resource="dwl/map-http-request-payload.dwl" />
-									</ee:message>
-								</ee:transform>
-		<async doc:name="Async" doc:id="0a2c76bb-6816-4341-9abd-4581cb7beb70">
-									<try doc:name="Try" doc:id="9edbfc6b-a776-419f-b0f4-350b96328040">
-										<http:request method="POST" doc:name="Request" doc:id="e22f8909-e759-46f8-9f2c-5f407fcdb4f8" config-ref="PricebooksAPI_Request_configuration" path="${pricebooks.uri}" />
-										<error-handler ref="global-error-handler" />
-									</try>
-									<logger level="INFO" doc:name="Logger" doc:id="1f1513d4-33a8-45be-b254-9ab5942d3bb7" message='#["\n Request to Pricebooks API Completed."]' />
-								</async>
-	</sub-flow>
-	<sub-flow name="update-products-subflow" doc:id="f6d50446-9a3d-46ef-a574-bcad688f9673">
-		<ee:transform doc:name="create-var-updatedata" doc:id="5eb1ab41-d3d3-4c83-b353-36abc12068ef">
-					<ee:message />
-					<ee:variables>
-						<ee:set-variable variableName="updatedata"><![CDATA[%dw 2.0
-output application/json
----
-//payload.Update filter ((item, index) -> item.id != null) distinctBy ((item) -> item.id)
-payload.Update filter ((item, index) -> item.id != null)]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-		<try doc:name="Try" doc:id="69ec6ecc-0097-4237-b87c-7e3da8af14b2">
-			<logger level="INFO" doc:name="Logger" doc:id="daffc791-213b-4e3f-9089-f60643f1612d" message="#['\n Starting Products Update : ' ++ sizeOf(payload.Update)]" />
-			<!-- [STUDIO:"Set Variable"]<set-variable value="#[payload&#93;" doc:name="Set Variable" doc:id="277fa499-4a83-4bcf-8d41-48990ea42a3e" variableName="testVar"/> [STUDIO] -->
-			<salesforce:update type="${sf.object}" doc:name="Update" doc:id="d0f3613f-c465-4ad0-bf9b-630dc2476f59" config-ref="Salesforce_Config">
-									<salesforce:records><![CDATA[#[payload.Update]]]></salesforce:records>
-								</salesforce:update>
-			<logger level="INFO" doc:name="Logger" doc:id="b7436bf3-8fce-43ad-9e56-19ca14653d90" message='#["\n Salesforce Update Operation Complete"]' />
-			<error-handler ref="global-error-handler" />
-								</try>
-		<choice doc:name="choose-to-send-failure-emails-only" doc:id="b2174c96-3c76-467a-ac1f-5eabbe2a1923" >
-			<when expression="#[payload.successful != true]">
-				<ee:transform doc:name="Transform Message" doc:id="ad435e26-f5ae-4007-b14b-65d691c3e141" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
-//var externalIds = testVar.Update.External_ID__c
----
-if (payload.successful == true) {Successful : payload.items map ((item, index) -> {
-
-    Id: item.id,
-    Status: item.successful
-
-} )}
-else (payload.items map(item,index) -> {
-	"MessageSender": "Update Products Failed",
-	failedId: item.id,
-  "Status Code": item.statusCode default "No Status Code Received from Salesforce",
-	message: item.exception.message default "No Error Message Received from Salesforce",
-  payload: if(item.statusCode != "DUPLICATE VALUE") (vars.updatedata filter ((item1, index) -> item1.id == item.id) map ((filteredItem) -> filteredItem) ) else ""
 	
-})]]></ee:set-payload>
-					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="status" ><![CDATA["Status Update for Update Products"]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="02ade25a-280d-43cc-ab42-807f01703427" message='#[payload]' />
-				<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="1b93cc3f-3842-474a-a1f0-6220f73d2433">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
-//var externalIds = testVar.Update.External_ID__c
-&#45;&#45;-
-if (payload.successful == true) {Successful : payload.items map ((item, index) -> {
-
-    Id: item.id,
-    Status: item.successful
-
-} )}
-else (payload.items map(item,index) -> {
-	"MessageSender": "Update Products Failed",
-	failedId: item.id,
-  "Status Code": item.statusCode default "No Status Code Received from Salesforce",
-	message: item.exception.message default "No Error Message Received from Salesforce",
-  payload: if(item.statusCode != "DUPLICATE VALUE") (vars.testVar.Update filter ((item1, index) -> item1.id == item.id) map ((filteredItem) -> filteredItem) ) else ""
-	
-})
-
-&#93;&#93;></ee:set-payload>
-					</ee:message>
-				</ee:transform> [STUDIO] -->
-				<!-- [STUDIO:"Remove Variable"]<remove-variable doc:name="Remove Variable" doc:id="4813e6f1-3ce7-4075-bd65-7ffd735afdbd" variableName="testVar" /> [STUDIO] -->
-				<flow-ref doc:name="send-update-email" doc:id="fa894670-167b-4bb6-9ee3-7df0984f6634" name="sendUpdateEmail" />
-			</when>
-			<otherwise >
-				<logger level="INFO" doc:name="Logger" doc:id="89c7e2ae-b1ab-4762-a5c4-cda8df6e7c9b" message='#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.items map ((item, index) -&gt; {&#10;&#10;    Id: item.id,&#10;    Status: item.successful&#10;&#10;} )}&#10;else (payload.items map() -&gt; {&#10;	"MessageSender": "Update Products Failed",&#10;	failedId: $.id,&#10;	message: $.message,&#10;	//External_ID__c: vars.testVar.Update.External_ID__c,&#10;	//payload: vars.testVar.Update&#10;	&#10;})]' />
-				<!-- [STUDIO:"Remove Variable"]<remove-variable doc:name="Remove Variable" doc:id="66eff300-08ed-4473-835d-a4413478ce99" variableName="testVar" /> [STUDIO] -->
-			</otherwise>
-		</choice>
-	</sub-flow>
 	<sub-flow name="landed-min-max-choice-subflow" doc:id="079492f5-9e09-4206-ab6d-36c1a7904fa8">
 		<choice doc:name="Choice" doc:id="813c08b9-c84d-4ca6-8912-5407ea3b461d">
 			<when expression="#[vars.metadata !=[]]">
@@ -902,11 +769,21 @@ if(payload.Status != null and payload.Status != [])(
 (flatten(
     payload.Status map ((statusItem) -> 
     statusItem.payload map ((item) -> item ) 
-)))) else [] ]]></ee:set-payload>
+)))) 
+else if(payload.Successful[0] == false) payload map ((item, index) -> (item))
+else [] ]]></ee:set-payload>
 							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="emailPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+							</ee:variables>
 						</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="ccf72fcf-0c91-4ab6-b04f-f8e1e004414a" message='#["\n Logging Before Sending Error Update Email"]' />
-						<email:send doc:name="Send" doc:id="bd14a6df-31cf-4600-8fc6-f2abcbca5892" config-ref="NTN-SMTP-Details" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]">
+						<choice doc:name="Choice" doc:id="6eaaddb0-4048-46b9-8065-6f76caab43f5" >
+							<when expression='#[!(vars.status contains "Notification")]'>
+								<email:send doc:name="Send" doc:id="bd14a6df-31cf-4600-8fc6-f2abcbca5892" config-ref="NTN-SMTP-Details" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]">
 									<email:body contentType="text/html" encoding="UTF-8">
 						<email:content><![CDATA[#[%dw 2.0
 	output application/xml
@@ -946,8 +823,59 @@ if(payload.Status != null and payload.Status != [])(
 		}
 	}]]]></email:content>
 											</email:body>
-							<email:attachments ><![CDATA[#[{"Products_Failures.csv": payload}]]]></email:attachments>
+							<email:attachments><![CDATA[#[%dw 2.0
+output application/json
+---
+{"Products_Failures.json": vars.emailPayload}]]]></email:attachments>
 								</email:send>
+							</when>
+							<otherwise >
+								<email:send doc:name="Send" doc:id="3ca12ad5-f710-4e7f-ab82-bea3b07f94b3" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" >
+									<email:body contentType="text/html" encoding="UTF-8" >
+										<email:content ><![CDATA[#[%dw 2.0
+	output application/xml
+	skipNullOn="everywhere"
+
+	---
+	{
+		"html":{
+			"body":{
+				"div" @(class:"total"):{
+					"div" @(class:"header"):{
+						"h2":"Status Update from Mulesoft"
+					},
+					"div" @(class:"content"):{
+						"p": "Hi,",
+						"p": "Greetings!!!",
+						"p": vars.status
+					},
+
+					"div":{
+						"table" @(width:'40%', border:'1', cellspacing:'0'): {
+								"tr":{
+									"th": "InterfaceName",
+									"td": p('app.name')
+								},
+						 
+									  tr: {
+										th: "Status",
+										td: "Invalid External Ids were generated during the initial mapping.Please Review the Attachment to check for failed records"
+									  }
+									}             
+					
+							}
+					}
+				}
+			}
+		}]]]></email:content>
+									</email:body>
+									<email:attachments ><![CDATA[#[%dw 2.0
+output application/csv header=true
+---
+{"Products_Failures.csv": payload}]]]></email:attachments>
+								</email:send>
+							</otherwise>
+						</choice>
 					</when>
 					<otherwise>
 						<logger level="INFO" doc:name="Logger" doc:id="494fe45a-1aed-45dd-ad10-2ad4d7e64ba1" message='#["\n Success Scenario Does Not Need Emails"]'/>
