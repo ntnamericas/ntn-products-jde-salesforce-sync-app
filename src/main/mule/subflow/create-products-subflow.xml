@@ -59,7 +59,7 @@ payload.items map ( {Product2Id: $.payload.id})
 										<ee:set-variable variableName="status"><![CDATA["Status Update for Create Products"]]></ee:set-variable>
 									</ee:variables>
 								</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="85debb2e-e53a-4055-82b5-ae0af32da26b" message='#[payload]' />
+				<logger level="DEBUG" doc:name="Logger" doc:id="85debb2e-e53a-4055-82b5-ae0af32da26b" message='#[payload]' />
 				<flow-ref doc:name="send-update-email" doc:id="d2a32a08-4992-4744-bce0-17d30f5e02a4" name="sendUpdateEmail" />
 			</when>
 			<otherwise >

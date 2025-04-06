@@ -39,17 +39,21 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 			target="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
 			<os:default-value><![CDATA[#[vars.productsJobRun]]]></os:default-value>
 		</os:retrieve>
-		<!-- [STUDIO:"static-time-set-for-code-debug"]<ee:transform doc:name="static-time-set-for-code-debug" doc:id="163f7f77-4b55-43b6-8468-a133fc0982ae" >
+		<ee:transform doc:name="static-time-set-for-code-debug" doc:id="163f7f77-4b55-43b6-8468-a133fc0982ae" >
 			<ee:message >
 			</ee:message>
 			<ee:variables >
-				<ee:set-variable variableName="previousProductsJobRun" ><![CDATA[{
+				<ee:set-variable variableName="previousProductsJobRun" ><![CDATA[//{
+//  "date": "125094",
+//  "time": "202157"
+//}
+{
   "date": "125094",
-  "time": "041739"
-}&#93;&#93;></ee:set-variable>
+  "time": "224318"
+}]]></ee:set-variable>
 			</ee:variables>
-		</ee:transform> [STUDIO] -->
-		<logger level="INFO" doc:name="Logger" doc:id="06bba3fc-e5b9-49a3-8368-11bdf8082eaa" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails : " ++ vars.previousProductsJobRun.^raw]'/>
+		</ee:transform>
+		<!-- [STUDIO:"Logger"]<logger level="INFO" doc:name="Logger" doc:id="06bba3fc-e5b9-49a3-8368-11bdf8082eaa" message='#[%dw 2.0&#10;output application/java&#10;&#45;&#45;-&#10;"&#10;LastjobRunDetails : " ++ vars.previousProductsJobRun.^raw&#93;'/> [STUDIO] -->
 		<logger level="INFO" doc:name="Logger" doc:id="730807af-856e-4f6a-9e87-1a050b20b8ee" message='#["\n Calling products-sub-flow"]' category="${log.category}"/>
 		<flow-ref doc:name="jde-products-sub-flow"
 			doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
@@ -93,7 +97,7 @@ payload&#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
 		<logger level="INFO" doc:name="Logger" doc:id="f2c4f333-1835-4427-8f7b-3aa0e7952aae" message='#["\n Product Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
-		<!-- [STUDIO:"Logger"]<logger level="INFO" doc:name="Logger" doc:id="ed4995a8-cfe7-4046-add4-45e10f988316" message="#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;payload&#93;"/> [STUDIO] -->
+		<logger level="INFO" doc:name="Logger" doc:id="ed4995a8-cfe7-4046-add4-45e10f988316" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]"/>
 		<ee:transform doc:name="map metadata" doc:id="76a67c59-2012-4683-bdbc-d90a3d2877ca">
 				<ee:message>
 				</ee:message>

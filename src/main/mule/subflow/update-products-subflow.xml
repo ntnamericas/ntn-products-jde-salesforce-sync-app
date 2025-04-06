@@ -52,7 +52,7 @@ else (payload.items filter ((item, index) -> item.exception != null) map(item,in
 						<ee:set-variable variableName="status" ><![CDATA["Status Update for Update Products"]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="2ee79ea6-825c-4294-b10e-7e5d066c90be" message='#[payload]' />
+				<logger level="DEBUG" doc:name="Logger" doc:id="2ee79ea6-825c-4294-b10e-7e5d066c90be" message='#[payload]' />
 				<flow-ref doc:name="send-update-email" doc:id="2f418e63-798e-4f53-a929-c4037da34dfe" name="sendUpdateEmail" />
 			</when>
 			<otherwise >
