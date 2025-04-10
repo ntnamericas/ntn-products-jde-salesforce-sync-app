@@ -71,7 +71,7 @@ http:
   reconnectionAttempts: "5"
   retryCount: "5"
   retryFrequency: "3000"
-  responseTimeout: "30"
+  responseTimeout: "60000"
   
 scheduler:
   frequency: "30"

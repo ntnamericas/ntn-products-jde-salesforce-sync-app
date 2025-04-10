@@ -16,7 +16,6 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
-	<file:config name="File_Config" doc:name="File Config" doc:id="0cf0f307-1f09-4234-b582-2b75224a000e" />
 	<flow name="prodcuts-schedule-flow"
 		doc:id="6c64299d-8db3-4c46-a5d2-1def002fce65" tracking:enable-default-events="true" initialState="${products.initialState}">
 		<scheduler doc:name="prodcuts-scheduler" doc:id="0c38b9fb-7af5-47a4-a2b7-866e400c5559" >
@@ -39,7 +38,7 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 			target="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
 			<os:default-value><![CDATA[#[vars.productsJobRun]]]></os:default-value>
 		</os:retrieve>
-		<ee:transform doc:name="static-time-set-for-code-debug" doc:id="163f7f77-4b55-43b6-8468-a133fc0982ae" >
+		<!-- [STUDIO:"static-time-set-for-code-debug"]<ee:transform doc:name="static-time-set-for-code-debug" doc:id="163f7f77-4b55-43b6-8468-a133fc0982ae" >
 			<ee:message >
 			</ee:message>
 			<ee:variables >
@@ -48,12 +47,12 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 //  "time": "202157"
 //}
 {
-  "date": "125094",
+  "date": "125080",
   "time": "224318"
-}]]></ee:set-variable>
+}&#93;&#93;></ee:set-variable>
 			</ee:variables>
-		</ee:transform>
-		<!-- [STUDIO:"Logger"]<logger level="INFO" doc:name="Logger" doc:id="06bba3fc-e5b9-49a3-8368-11bdf8082eaa" message='#[%dw 2.0&#10;output application/java&#10;&#45;&#45;-&#10;"&#10;LastjobRunDetails : " ++ vars.previousProductsJobRun.^raw&#93;'/> [STUDIO] -->
+		</ee:transform> [STUDIO] -->
+		<logger level="INFO" doc:name="Logger" doc:id="06bba3fc-e5b9-49a3-8368-11bdf8082eaa" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails : " ++ vars.previousProductsJobRun.^raw]'/>
 		<logger level="INFO" doc:name="Logger" doc:id="730807af-856e-4f6a-9e87-1a050b20b8ee" message='#["\n Calling products-sub-flow"]' category="${log.category}"/>
 		<flow-ref doc:name="jde-products-sub-flow"
 			doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
@@ -97,7 +96,7 @@ payload&#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
 		<logger level="INFO" doc:name="Logger" doc:id="f2c4f333-1835-4427-8f7b-3aa0e7952aae" message='#["\n Product Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
-		<logger level="INFO" doc:name="Logger" doc:id="ed4995a8-cfe7-4046-add4-45e10f988316" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]"/>
+		<logger level="DEBUG" doc:name="DEBUG LOG" doc:id="ed4995a8-cfe7-4046-add4-45e10f988316" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]"/>
 		<ee:transform doc:name="map metadata" doc:id="76a67c59-2012-4683-bdbc-d90a3d2877ca">
 				<ee:message>
 				</ee:message>
@@ -324,7 +323,7 @@ payload map read( $, 'application/json')]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
 						<flow-ref doc:name="create-update-products-subflow" doc:id="18585d7a-1d6b-4a7b-b9ca-f145c90848c6" name="create-update-products-subflow" targetValue="#[aggregatorValue]"/>
-						<logger level="INFO" doc:name="Logger" doc:id="ff165725-d3ed-463f-b0a8-9504409f9854" message='#["\n Batch Aggregator Processing Complete"]'/>
+						<logger level="INFO" doc:name="Logger" doc:id="ff165725-d3ed-463f-b0a8-9504409f9854" message='#["\n Batch Aggregator Processing Complete"]' />
 					</batch:aggregator>
 				
 </batch:step>
@@ -787,7 +786,7 @@ payload]]></ee:set-variable>
 						<logger level="INFO" doc:name="Logger" doc:id="ccf72fcf-0c91-4ab6-b04f-f8e1e004414a" message='#["\n Logging Before Sending Error Update Email"]' />
 						<choice doc:name="Choice" doc:id="6eaaddb0-4048-46b9-8065-6f76caab43f5" >
 							<when expression='#[!(vars.status contains "Notification")]'>
-								<email:send doc:name="Send" doc:id="bd14a6df-31cf-4600-8fc6-f2abcbca5892" config-ref="NTN-SMTP-Details" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]">
+								<email:send doc:name="Send" doc:id="bd14a6df-31cf-4600-8fc6-f2abcbca5892" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" config-ref="NTN-SMTP-Details">
 									<email:body contentType="text/html" encoding="UTF-8">
 						<email:content><![CDATA[#[%dw 2.0
 	output application/xml
@@ -834,7 +833,7 @@ output application/json
 								</email:send>
 							</when>
 							<otherwise >
-								<email:send doc:name="Send" doc:id="3ca12ad5-f710-4e7f-ab82-bea3b07f94b3" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" >
+								<email:send doc:name="Send" doc:id="3ca12ad5-f710-4e7f-ab82-bea3b07f94b3" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" config-ref="NTN-SMTP-Details">
 									<email:body contentType="text/html" encoding="UTF-8" >
 										<email:content ><![CDATA[#[%dw 2.0
 	output application/xml

@@ -17,13 +17,25 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 output application/json
 ---
 //(payload.Create filter ((item, index) -> item.id == null))
-(payload filter ((item, index) -> item.id == null))]]></ee:set-variable>
+(payload filter ((item, index) -> item.id == ""))]]></ee:set-variable>
 									</ee:variables>
 								</ee:transform>
 		<try doc:name="Try" doc:id="55de1f86-980f-4e74-8801-0c003e5b8b0b">
 									<logger level="INFO" doc:name="Logger" doc:id="8eec9926-4ed0-4b34-b2b0-53b5de8c815e" message="#['\n Starting Products Create : '  ++ sizeOf(payload)]" />
 									<salesforce:create doc:name="Create" doc:id="355be057-dcf5-4184-b9eb-e218c34d80f3" config-ref="Salesforce_Config" type="${sf.object}" >
 			</salesforce:create>
+			<ee:transform doc:name="Transform Message" doc:id="67a130b7-e9ab-4324-bce2-79d9df8173cb" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="product2id" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.items map ((item, index) -> 
+  "Product2Id" : item.id
+)]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
 			<logger level="INFO" doc:name="Logger" doc:id="922076c1-e37c-444d-8f2e-d58b37330487" message='#["\n Salesforce Create Operation Complete"]'/>
 			<error-handler ref="global-error-handler" />
 								</try>
@@ -74,7 +86,7 @@ payload.items map ( {Product2Id: $.payload.id})
 								</ee:transform>
 		<async doc:name="Async" doc:id="53f1a78d-cba8-4da7-87ed-fe0c37a7ae99">
 									<try doc:name="Try" doc:id="ae2168c1-4bbf-48a9-94bd-5b559a4a35b6">
-										<http:request method="POST" doc:name="Request" doc:id="fbdf35ae-8e41-4720-ab86-1a788e39956e" config-ref="PricebooksAPI_Request_configuration" path="${pricebooks.uri}" />
+										<http:request method="POST" doc:name="Request" doc:id="fbdf35ae-8e41-4720-ab86-1a788e39956e" config-ref="PricebooksAPI_Request_configuration" path="${pricebooks.uri}" responseTimeout="${http.responseTimeout}" requestStreamingMode="AUTO" sendCorrelationId="ALWAYS"/>
 										<error-handler ref="global-error-handler" />
 									</try>
 									<logger level="INFO" doc:name="Logger" doc:id="78983db2-327f-414c-8d02-21888b148cbb" message='#["\n Request to Pricebooks API Completed."]' />

@@ -24,3 +24,5 @@ pricebooks:
   port: "443"
   basePath : "/api/"
   uri : "pricebooks"
+  #host: "0.0.0.0"
+  #port: "8082"
