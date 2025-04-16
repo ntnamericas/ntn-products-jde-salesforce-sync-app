@@ -32,7 +32,7 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 
 </ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="jobRun logger" doc:id="5984e226-a277-496d-8706-1396756d7fbd" message="#[vars.productsJobRun]" category="${log.category}"/>
+		<logger level="INFO" doc:name="jobRun logger" doc:id="5984e226-a277-496d-8706-1396756d7fbd" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrentJobRunDetails : " ++ vars.productsJobRun.^raw]' category="${log.category}"/>
 		<os:retrieve doc:name="retrievePreviousJobRun"
 			doc:id="35c3b04f-5293-4fbe-bc99-a0fdecbc6fbf" key="previousProductsJobRun"
 			target="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
@@ -42,13 +42,9 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 			<ee:message >
 			</ee:message>
 			<ee:variables >
-				<ee:set-variable variableName="previousProductsJobRun" ><![CDATA[//{
-//  "date": "125094",
-//  "time": "202157"
-//}
-{
-  "date": "125080",
-  "time": "224318"
+				<ee:set-variable variableName="previousProductsJobRun" ><![CDATA[{
+  "date": "125088",
+  "time": "124327"
 }&#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
@@ -56,6 +52,7 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 		<logger level="INFO" doc:name="Logger" doc:id="730807af-856e-4f6a-9e87-1a050b20b8ee" message='#["\n Calling products-sub-flow"]' category="${log.category}"/>
 		<flow-ref doc:name="jde-products-sub-flow"
 			doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
+		<logger level="INFO" doc:name="Logger" doc:id="a2e491f7-6a6f-425c-af45-a15f62f02f78" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]'/>
 		<os:store doc:name="Store current job run details"
 			doc:id="94b3f559-1d39-4249-955c-d4e8e8951844" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
 			<os:value><![CDATA[#[vars.productsJobRun]]]></os:value>
@@ -397,7 +394,7 @@ output application/json
 payload]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="ecea1a8c-bb37-4a25-b1f0-12f6a8f9eb62" message="#['\n'] Final Payload is ==&gt;  #[payload]"/>
+				<logger level="INFO" doc:name="Logger" doc:id="ecea1a8c-bb37-4a25-b1f0-12f6a8f9eb62" message="#['\n'] Main PRODUCTS batch is completed ==&gt;  #[payload]"/>
 			</batch:on-complete>
 		</batch:job>
 		<error-handler ref="global-error-handler" />

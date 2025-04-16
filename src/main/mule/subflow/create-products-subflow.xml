@@ -17,7 +17,7 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 output application/json
 ---
 //(payload.Create filter ((item, index) -> item.id == null))
-(payload filter ((item, index) -> item.id == ""))]]></ee:set-variable>
+payload]]></ee:set-variable>
 									</ee:variables>
 								</ee:transform>
 		<try doc:name="Try" doc:id="55de1f86-980f-4e74-8801-0c003e5b8b0b">
@@ -86,7 +86,13 @@ payload.items map ( {Product2Id: $.payload.id})
 								</ee:transform>
 		<async doc:name="Async" doc:id="53f1a78d-cba8-4da7-87ed-fe0c37a7ae99">
 									<try doc:name="Try" doc:id="ae2168c1-4bbf-48a9-94bd-5b559a4a35b6">
-										<http:request method="POST" doc:name="Request" doc:id="fbdf35ae-8e41-4720-ab86-1a788e39956e" config-ref="PricebooksAPI_Request_configuration" path="${pricebooks.uri}" responseTimeout="${http.responseTimeout}" requestStreamingMode="AUTO" sendCorrelationId="ALWAYS"/>
+										<http:request method="POST" doc:name="Request" doc:id="fbdf35ae-8e41-4720-ab86-1a788e39956e" config-ref="PricebooksAPI_Request_configuration" path="${pricebooks.uri}" responseTimeout="${http.responseTimeout}" requestStreamingMode="AUTO" sendCorrelationId="ALWAYS">
+					<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+				</http:request>
 										<error-handler ref="global-error-handler" />
 									</try>
 									<logger level="INFO" doc:name="Logger" doc:id="78983db2-327f-414c-8d02-21888b148cbb" message='#["\n Request to Pricebooks API Completed."]' />
