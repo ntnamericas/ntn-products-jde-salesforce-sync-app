@@ -1,0 +1,28 @@
+app:
+  id: ""
+  env: "UAT"
+  name:    "ntn-products-jde-salesforce-sync-app"
+  
+http:
+  host: "0.0.0.0"
+  port: "8081"
+  timeout: "15000"
+
+
+sf:
+  user: "mulesoftintegration@ntnusa.com.stage"
+  authURL : "https://test.salesforce.com/services/Soap/u/56.0"
+  URL: "https://ntnconnect--stage.sandbox.my.salesforce.com/services/oauth2/token" 
+  
+db:
+  host: "129.147.16.139"
+  port: "1521"
+  svc : "jdorclpy.netjiuwoz.vcnzgqox.oraclevcn.com"
+
+pricebooks:
+  host: "ntn-pricebooks-jde-sf-sync-app-dev-tpw8fz.89unfu.usa-e2.cloudhub.io"
+  port: "443"
+  basePath : "/api/"
+  uri : "pricebooks"
+  #host: "0.0.0.0"
+  #port: "8082"

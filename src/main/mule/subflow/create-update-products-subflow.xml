@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+	<sub-flow name="create-update-products-subflow" doc:id="2d26cbc2-00f0-402c-b937-a54432cd36c6" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="0a28ca2d-6d60-4444-b439-96afaf47c253" >
+			<route >
+				<ee:transform doc:name="create" doc:id="b935c5d7-d5f3-461c-b287-1a21f80c06b4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload."Create"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="3678f988-4727-49eb-a94a-a52a5d8eb072" tracking:enable-default-events="true">
+					<when expression="!isEmpty(payload)">
+						<ee:transform doc:name="Transform Message" doc:id="e5acdcf2-2085-48ad-9d47-6b80c2f3e774" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<flow-ref doc:name="create-products-subflow" doc:id="a5e9b337-798a-43a0-b4fb-4463ed269b7a" name="create-products-subflow"/>
+					
+</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Logger" doc:id="dc0fa873-75d8-4e7b-b320-4402e24e2419" message="Nothing to create"/>
+					</otherwise>
+				</choice>
+			</route>
+			<route >
+				<ee:transform doc:name="update" doc:id="0b54f941-dbff-43d6-91b0-a762a4aa45b2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload."Update"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="f5750673-2d74-4585-895b-31c1d6ca46d1" tracking:enable-default-events="true">
+					<when expression="!isEmpty(payload)" >
+						<ee:transform doc:name="Transform Message" doc:id="071bf6cb-920f-4837-bdea-7c1f42f11dac" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<flow-ref doc:name="update-products-subflow" doc:id="24b6ad37-31fa-42d7-9514-5cf9b78e5b8b" name="update-products-subflow"/>
+					
+</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Logger" doc:id="40b1991d-1acf-45ae-bfdc-77bdf4b10a6b" message="Nothing to update"/>
+					</otherwise>
+				</choice>
+			</route>
+			<route >
+				<ee:transform doc:name="no op" doc:id="764f05de-4ea9-4c25-81e4-a5f20c1166c0" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload.noOperation]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="b2495eb9-2df3-4361-a60c-febe038cfacb" tracking:enable-default-events="true">
+					<when expression="!isEmpty(payload)" >
+						<ee:transform doc:name="Transform Message" doc:id="2efa3a45-9735-43ec-bcfa-275b966b7a98" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<flow-ref doc:name="no-operation-subflow" doc:id="d9d94890-ce34-430d-b7f0-e635a48f40f2" name="no-operation-subflow"/>
+					
+</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Logger" doc:id="f2db3413-2c55-49e0-82ee-fd94f01ed137" message="nothing for no-operation"/>
+					</otherwise>
+				</choice>
+			</route>
+		</scatter-gather>
+	</sub-flow>
+	</mule>

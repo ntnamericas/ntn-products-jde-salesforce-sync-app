@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="no-operation-subflow" doc:id="f8b24d81-af04-48e9-962f-ef36bafa2fb4" >
+		<ee:transform doc:name="Transform Message" doc:id="4ece5db8-527b-4855-b464-8bdd8ff46617">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload ++ ["Successful" : false] )]]></ee:set-payload>
+					</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="status" ><![CDATA["Notification for Invalid Products"]]></ee:set-variable>
+			</ee:variables>
+				
+</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="21d23291-bb03-4175-ab0b-11e80e32fb04" message='#["/n Invalid Condition"]' />
+		<flow-ref doc:name="send-update-email" doc:id="ef6c39bb-0d17-4157-bc34-9d09b6350211" name="sendUpdateEmail" />
+	</sub-flow>
+</mule>
