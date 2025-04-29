@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6062dddf-9194-4485-8cde-71c7193dc950" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
@@ -20,57 +21,11 @@ payload]]></ee:set-payload>
 		</ee:transform>
 		<choice doc:name="Choice" doc:id="ff15e6c8-a2f0-4b7b-9dcb-6e10564a1a6d" >
 			<when expression='#[upper(payload.interface) == "CFIN"]'>
-				<ee:transform doc:name="Transform Message" doc:id="5de73336-2da3-44a0-812d-f4db9bcc5168" >
-					<ee:message >
-					</ee:message>
-					<ee:variables >
-						<ee:set-variable variableName="previouscifJobRun" ><![CDATA[%dw 2.0
-output application/json
----
-{
-  "date": payload.date,
-  "time": payload.time
-}]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-				<flow-ref doc:name="Flow Reference to cif-min-max-subFlow" doc:id="72d195bd-fe77-479d-92d4-ceb8be808c61" name="cif-min-max-subFlow"/>
-				<ee:transform doc:name="Transform Message" doc:id="73d492e9-8444-4b39-9442-d8a7922ad90c" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-payload]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
-			</when>
-			<when expression='#[upper(payload.interface) == "EPTL"]'>
-				<ee:transform doc:name="Transform Message1" doc:id="1533eb4b-5a0d-4fd8-926a-0ad2b88cdb35" >
-					<ee:message />
-					<ee:variables >
-						<ee:set-variable variableName="previouscifJobRun" ><![CDATA[%dw 2.0
-output application/json
----
-{
-  "date": payload.date,
-  "time": payload.time
-}]]></ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-				<flow-ref doc:name="Flow Reference to estimated-lead-time-min-max-subflow" doc:id="a186febb-00a6-4dd8-aa19-0e346af5741c" name="estimated-lead-time-min-max-subflow"/>
-				<ee:transform doc:name="Transform Message" doc:id="e44828e5-70d8-4919-8a00-2a2a3d4d1585" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-payload]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
-			</when>
-			<when expression='#[upper(payload.interface) == "PRODUCTS"]'>
-				<ee:transform doc:name="Transform Message1" doc:id="9975bade-9c1c-4fce-b78f-1cd969664520">
+				<ee:transform doc:name="jobRunTime" doc:id="da08cc23-8e33-4fca-a4a6-73d5b4683b96">
 					<ee:message />
 					<ee:variables>
-						<ee:set-variable variableName="previouscifJobRun"><![CDATA[%dw 2.0
+						<ee:set-variable resource="dwl/vars-cifjobRun.dwl" variableName="cifjobRun" />
+						<ee:set-variable variableName="previouscifJobRun" ><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -79,15 +34,60 @@ output application/json
 }]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
-				<flow-ref doc:name="Flow Reference to products-sub-flow" doc:id="91f64187-69a1-45af-88c4-f64c8cf054a0" name="products-sub-flow"/>
-				<ee:transform doc:name="Transform Message" doc:id="ec0d51da-b82e-4c8b-ab33-cbc12edd6e78" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+				<logger level="INFO" doc:name="jobRun logger" doc:id="dcfd8aa7-c3ce-4d95-9da6-75eefc79c9d6" message="#[vars.cifjobRun]" category="${log.category}" />
+				<logger level="INFO" doc:name="Logger2" doc:id="99ee7150-d95e-4f83-9912-0d153eb8b20f" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails : " ++ vars.previouscifJobRun.^raw]' category="${log.category}" />
+				<logger level="INFO" doc:name="Logger" doc:id="bb12f95b-0345-47a6-924c-1c31a6252dd9" message='Calling "cif-min-max-subFlow"' category="${log.category}" />
+				<flow-ref doc:name="Flow Reference to cif-min-max-subFlow" doc:id="72d195bd-fe77-479d-92d4-ceb8be808c61" name="cif-min-max-subFlow"/>
+				<logger level="INFO" doc:name="Logger1" doc:id="59cddb1c-1cf9-4567-91d3-5d85025e5f6d" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.cifjobRun.^raw]' />
+				<os:store doc:name="Store current job run details" doc:id="a2f0540e-07b9-421b-966b-f89f5c24bd71" key="previouscifJobRun" objectStore="Object_store_Previous_cif_Job_Run" >
+					<os:value ><![CDATA[#[vars.cifjobRun]]]></os:value>
+				</os:store>
+			</when>
+			<when expression='#[upper(payload.interface) == "EPTL"]'>
+				<ee:transform doc:name="jobRunTime" doc:id="2a56863b-93bd-46b2-ba58-dc8ec1e5834e">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dwl/vars-epltjobRun.dwl" variableName="epltjobRun" />
+						<ee:set-variable variableName="previousepltJobRun" ><![CDATA[%dw 2.0
 output application/json
 ---
-payload]]></ee:set-payload>
-					</ee:message>
+{
+  "date": payload.date,
+  "time": payload.time
+}]]></ee:set-variable>
+					</ee:variables>
 				</ee:transform>
+				<logger level="INFO" doc:name="jobRun logger" doc:id="4f498a4a-f6bd-4456-aea6-a74b49e9298c" message="#[vars.epltjobRun]" category="${log.category}" />
+				<logger level="INFO" doc:name="Logger2" doc:id="6d9d23f6-123d-4cd7-945b-153c618f963a" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails : " ++ vars.previousepltJobRun.^raw]' category="${log.category}" />
+				<logger level="INFO" doc:name="Logger" doc:id="46a9a6be-a963-4b66-aea9-06cba9cbd48e" message='#["Calling estimated-lead-time-min-max-subflow"]' category="${log.category}" />
+				<flow-ref doc:name="Flow Reference to estimated-lead-time-min-max-subflow" doc:id="a186febb-00a6-4dd8-aa19-0e346af5741c" name="estimated-lead-time-min-max-subflow"/>
+				<logger level="INFO" doc:name="Logger1" doc:id="305fcefd-1002-4615-bcf1-6309a42836b1" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.epltjobRun.^raw]' />
+				<os:store doc:name="Store current job run details" doc:id="9388849a-145a-43d1-be28-ef3d89fe54b7" key="previousepltJobRun" objectStore="Object_store_Previous_eplt_Job_Run">
+					<os:value><![CDATA[#[vars.epltjobRun]]]></os:value>
+				</os:store>
+			</when>
+			<when expression='#[upper(payload.interface) == "PRODUCTS"]'>
+				<ee:transform doc:name="jobRunTime" doc:id="31cc7b9a-fba9-4514-bc5a-2c797c95febe">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dwl/vars-productsJobRun.dwl" variableName="productsJobRun" />
+						<ee:set-variable variableName="previousProductsJobRun" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "date": payload.date,
+  "time": payload.time
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="jobRun logger" doc:id="05e5eaa8-5c25-4ed0-8d43-3c918f1535e1" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrentJobRunDetails : " ++ vars.productsJobRun.^raw]' category="${log.category}" />
+				<logger level="INFO" doc:name="Logger" doc:id="cda9d1ff-88c2-407c-a26e-801e0a690f71" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails : " ++ vars.previousProductsJobRun.^raw]' />
+				<logger level="INFO" doc:name="Logger1" doc:id="32718547-1e06-424d-9d86-2e56ea01527d" message='#["\n Calling products-sub-flow"]' category="${log.category}" />
+				<flow-ref doc:name="Flow Reference to products-sub-flow" doc:id="91f64187-69a1-45af-88c4-f64c8cf054a0" name="products-sub-flow"/>
+				<logger level="INFO" doc:name="Logger2" doc:id="3a7a14ad-1061-4a51-8049-69c8f73bb494" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]' />
+				<os:store doc:name="Store current job run details" doc:id="85e18075-9a8a-4c02-8023-70bb2be378c8" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run" >
+					<os:value ><![CDATA[#[vars.productsJobRun]]]></os:value>
+				</os:store>
 			</when>
 		</choice>
 		<error-handler ref="global-error-handler" />
