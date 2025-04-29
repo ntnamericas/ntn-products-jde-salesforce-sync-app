@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6062dddf-9194-4485-8cde-71c7193dc950" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="redrive-flowFlow" doc:id="b08aeb24-166b-4ded-9109-204269922b28" >
+		<http:listener doc:name="Listener" doc:id="715fe8b2-619e-4140-8946-b82f5ff279d3" config-ref="HTTP_Listener_config" path="/products"/>
+		<ee:transform doc:name="Transform Message" doc:id="6b1e4e14-c0e5-4a44-9244-b72d8e1a0cb5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="ff15e6c8-a2f0-4b7b-9dcb-6e10564a1a6d" >
+			<when expression='#[upper(payload.interface) == "CFIN"]'>
+				<ee:transform doc:name="Transform Message" doc:id="5de73336-2da3-44a0-812d-f4db9bcc5168" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="previouscifJobRun" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "date": payload.date,
+  "time": payload.time
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="Flow Reference to cif-min-max-subFlow" doc:id="72d195bd-fe77-479d-92d4-ceb8be808c61" name="cif-min-max-subFlow"/>
+				<ee:transform doc:name="Transform Message" doc:id="73d492e9-8444-4b39-9442-d8a7922ad90c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[upper(payload.interface) == "EPTL"]'>
+				<ee:transform doc:name="Transform Message1" doc:id="1533eb4b-5a0d-4fd8-926a-0ad2b88cdb35" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="previouscifJobRun" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "date": payload.date,
+  "time": payload.time
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="Flow Reference to estimated-lead-time-min-max-subflow" doc:id="a186febb-00a6-4dd8-aa19-0e346af5741c" name="estimated-lead-time-min-max-subflow"/>
+				<ee:transform doc:name="Transform Message" doc:id="e44828e5-70d8-4919-8a00-2a2a3d4d1585" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[upper(payload.interface) == "PRODUCTS"]'>
+				<ee:transform doc:name="Transform Message1" doc:id="9975bade-9c1c-4fce-b78f-1cd969664520">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="previouscifJobRun"><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "date": payload.date,
+  "time": payload.time
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="Flow Reference to products-sub-flow" doc:id="91f64187-69a1-45af-88c4-f64c8cf054a0" name="products-sub-flow"/>
+				<ee:transform doc:name="Transform Message" doc:id="ec0d51da-b82e-4c8b-ab33-cbc12edd6e78" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+		</choice>
+		<error-handler ref="global-error-handler" />
+	</flow>
+</mule>
