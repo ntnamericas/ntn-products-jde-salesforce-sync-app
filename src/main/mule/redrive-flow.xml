@@ -20,7 +20,7 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<choice doc:name="Choice" doc:id="ff15e6c8-a2f0-4b7b-9dcb-6e10564a1a6d" >
-			<when expression='#[upper(payload.interface) == "CFIN"]'>
+			<when expression='#[upper(payload.interface) == "CIF"]'>
 				<ee:transform doc:name="jobRunTime" doc:id="da08cc23-8e33-4fca-a4a6-73d5b4683b96">
 					<ee:message />
 					<ee:variables>
@@ -43,7 +43,7 @@ output application/json
 					<os:value ><![CDATA[#[vars.cifjobRun]]]></os:value>
 				</os:store>
 			</when>
-			<when expression='#[upper(payload.interface) == "EPTL"]'>
+			<when expression='#[upper(payload.interface) == "EPLT"]'>
 				<ee:transform doc:name="jobRunTime" doc:id="2a56863b-93bd-46b2-ba58-dc8ec1e5834e">
 					<ee:message />
 					<ee:variables>
@@ -89,6 +89,9 @@ output application/json
 					<os:value ><![CDATA[#[vars.productsJobRun]]]></os:value>
 				</os:store>
 			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="0ddbcd13-0904-494b-83bf-bd15fe6f3857" message='#[upper(payload.interface) ++ "interface does not exist"]'/>
+			</otherwise>
 		</choice>
 		<error-handler ref="global-error-handler" />
 	</flow>
