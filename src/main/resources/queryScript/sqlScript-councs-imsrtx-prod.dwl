@@ -6,7 +6,7 @@ COLEDG07_F4105 AS (
  ---Based on changed since last run (review  COUMPJ and COTDAY)Hold variable COLITM
     Select TRIM(X1.COLITM) AS COLITM, TRIM(X1.COITM) AS COITM, TRIM(X1.COLEDG) AS COLEDG, TRIM(X1.COUPMJ) AS COUPMJ, TRIM(X1.COTDAY) AS COTDAY, TRIM(X1.COMCU) AS COMCU
     FROM PRODDTA.F4105 X1
-    WHERE  X1.COLEDG='07' AND X1.COMCU='1801' AND (X1.COUPMJ >= $(vars.previouscifJobRun.date) AND X1.COTDAY >= $(vars.previouscifJobRun.time))
+    WHERE  TRIM(X1.COLEDG)='07' AND TRIM(X1.COMCU)='1801' AND (X1.COUPMJ >= $(vars.previouscifJobRun.date) AND X1.COTDAY >= $(vars.previouscifJobRun.time))
 	--WHERE TRIM(X1.COLITM) IN  ('592A[M100]') 
 ),
 

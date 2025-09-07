@@ -19,6 +19,7 @@ payload."Create"]]></ee:set-payload>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="3678f988-4727-49eb-a94a-a52a5d8eb072" tracking:enable-default-events="true">
 					<when expression="!isEmpty(payload)">
+						<logger level="INFO" doc:name="Logger" doc:id="30044577-1f5f-410c-a2f6-2e29dd33116d" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"Create:" ++ write(payload, "application/json")]'/>
 						<ee:transform doc:name="Transform Message" doc:id="e5acdcf2-2085-48ad-9d47-6b80c2f3e774" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
@@ -46,6 +47,7 @@ payload."Update"]]></ee:set-payload>
 				</ee:transform>
 				<choice doc:name="Choice" doc:id="f5750673-2d74-4585-895b-31c1d6ca46d1" tracking:enable-default-events="true">
 					<when expression="!isEmpty(payload)" >
+						<logger level="INFO" doc:name="Logger" doc:id="674b6703-b569-47a5-8a9c-f174f408e539" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"update:" ++ write(payload, "application/json")]'/>
 						<ee:transform doc:name="Transform Message" doc:id="071bf6cb-920f-4837-bdea-7c1f42f11dac" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0

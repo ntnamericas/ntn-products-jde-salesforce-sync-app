@@ -80,10 +80,10 @@ scheduler:
 smtp:
   host: "smtp.office365.com"
   port: "25"  
-  to: "suman.chatterjee@prowesssoft.com"
+  to: "donotreply@ntnusa.com,ntnmule@prowesssoft.com"
  
 products:
-  initialState : "started"
+  initialState : "stopped"
 cif:
   initialState : "stopped"
 eplt:

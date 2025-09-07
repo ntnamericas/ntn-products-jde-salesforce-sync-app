@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:email="http://www.mulesoft.org/schema/mule/email"
+<mule xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
 	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
-	xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite"
-	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
-	xmlns:db="http://www.mulesoft.org/schema/mule/db"
-	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+	xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -15,10 +15,11 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
-http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
 	<flow name="prodcuts-schedule-flow"
 		doc:id="6c64299d-8db3-4c46-a5d2-1def002fce65" tracking:enable-default-events="true" initialState="${products.initialState}">
-		<scheduler doc:name="prodcuts-scheduler" doc:id="0c38b9fb-7af5-47a4-a2b7-866e400c5559" >
+		<scheduler doc:name="prodcuts-scheduler" doc:id="0c38b9fb-7af5-47a4-a2b7-866e400c5559" disallowConcurrentExecution="true">
 			<scheduling-strategy >
 				<fixed-frequency frequency="${scheduler.frequency}" timeUnit="DAYS" startDelay="${scheduler.startDelay}"/>
 			</scheduling-strategy>
@@ -43,24 +44,14 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 			</ee:message>
 			<ee:variables >
 				<ee:set-variable variableName="previousProductsJobRun" ><![CDATA[{
-  "date": "125088",
-  "time": "124327"
+  "date": "125156",
+  "time": "221400"
 }&#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
-		<logger level="INFO" doc:name="Logger" doc:id="06bba3fc-e5b9-49a3-8368-11bdf8082eaa" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails : " ++ vars.previousProductsJobRun.^raw]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="06bba3fc-e5b9-49a3-8368-11bdf8082eaa" message="#[%dw 2.0&#10;output application/java&#10;---&#10;&quot;&#10;LastjobRunDetails : &quot; ++ write(vars.previousProductsJobRun.^raw, 'application/json')]"/>
 		<logger level="INFO" doc:name="Logger" doc:id="730807af-856e-4f6a-9e87-1a050b20b8ee" message='#["\n Calling products-sub-flow"]' category="${log.category}"/>
-		<flow-ref doc:name="jde-products-sub-flow"
-			doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
-		<logger level="INFO" doc:name="Logger" doc:id="a2e491f7-6a6f-425c-af45-a15f62f02f78" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]'/>
-		<os:store doc:name="Store current job run details"
-			doc:id="94b3f559-1d39-4249-955c-d4e8e8951844" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
-			<os:value><![CDATA[#[vars.productsJobRun]]]></os:value>
-		</os:store>
-		<error-handler ref="global-error-handler" />
-	</flow>
-	<sub-flow name="products-sub-flow" doc:id="1decaf7b-f651-4c2d-bc2a-2c74fb85198c" >
-		<ee:transform doc:name="Transform Message" doc:id="178730ec-771e-4fb6-8df9-14aeb96b605a">
+		<ee:transform doc:name="Transform Message" doc:id="79a98857-1b95-41e6-88c6-b370ffa2515c">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output text/plain
@@ -74,14 +65,23 @@ output application/json
 readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true})]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="d6c023ec-c961-4824-9769-76390fcbb3e4" expression="#[payload]" />
-		<try doc:name="Try" doc:id="ee48df11-e059-4c03-8098-c1698da092d7" >
-			<db:select doc:name="Get Product Details" doc:id="8ff6cc13-6128-4813-a538-8740e4bce437" config-ref="Oracle_JDE_Database_Config">
-			<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="e44b73d0-65fa-40ae-a706-8b3f4b39cfcd" expression="#[payload]" />
+		<try doc:name="Try" doc:id="c2d61c67-3f6b-47da-a536-083434d555c8">
+			<db:select doc:name="Get Product Details" doc:id="cfec3483-a133-48a7-b514-56dfc1cb1fd7" config-ref="Oracle_JDE_Database_Config">
+				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 				<db:sql><![CDATA[#[payload]]]></db:sql>
-		</db:select>
-			<error-handler ref="global-error-handler" />
+			</db:select>
 		</try>
+		<flow-ref doc:name="jde-products-sub-flow"
+			doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
+		<logger level="INFO" doc:name="Logger" doc:id="a2e491f7-6a6f-425c-af45-a15f62f02f78" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]'/>
+		<os:store doc:name="Store current job run details"
+			doc:id="94b3f559-1d39-4249-955c-d4e8e8951844" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
+			<os:value><![CDATA[#[vars.productsJobRun]]]></os:value>
+		</os:store>
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<sub-flow name="products-sub-flow" doc:id="1decaf7b-f651-4c2d-bc2a-2c74fb85198c" >
 		<!-- [STUDIO:"var-productMaster"]<ee:transform doc:name="var-productMaster" doc:id="af37a10d-5942-4b41-ac76-4f4e85f7060d" >
 			<ee:message >
 			</ee:message>
@@ -101,9 +101,17 @@ payload&#93;&#93;></ee:set-variable>
 				<ee:set-variable resource="dwl/metadata.dwl" variableName="metadata" />
 				</ee:variables>
 			</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="f51db8f9-0dde-4b42-bcc1-21cc6c927142" message='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.metadata map ((item, index) -&gt; &#10;{   &#10;    ContextLogger: "This is the first logger after data is fetched from Products DB",&#10;    IMDRAW : item.IMDRAW  default  null,&#10;    IMSRTX: item.IMSRTX default  null,&#10;    IMLITM: item.IMLITM default  null,&#10;    IBLITM: item.IBLITM default  null,&#10;    drawExternalIDLanded : item.drawExternalIDLanded default  null,&#10;    srtxExternalIDLanded : item.srtxExternalIDLanded default  null&#10;} )]'/>
 		<choice doc:name="For for " doc:id="58d5085e-9515-42ba-98fd-cdeeb403ad3c" >
 			<when expression="#[payload !=[]]">
 				<logger level="INFO" doc:name="Logger" doc:id="98110b91-4323-42c8-95d0-c29712a9d1e9" message='#["\n Calling products-mapping-subflow "]'/>
+				<ee:transform doc:name="set-context" doc:id="bd3506b4-c276-46a2-9379-bed09415b21d">
+					<ee:message>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable resource="dwl/varContextLog.dwl" variableName="contextLog" />
+					</ee:variables>
+				</ee:transform>
 				<flow-ref doc:name="products-mapping-subflow" doc:id="4eb4adc5-6e98-4f2c-b2ba-6d6d5d856783" name="products-mapping-subflow" />
 				<ee:transform doc:name="Transform Message" doc:id="62e82583-d8b0-44da-bc20-a34f81653838">
 			<ee:message>
@@ -112,12 +120,31 @@ payload&#93;&#93;></ee:set-variable>
 				<ee:set-variable variableName="metadata"><![CDATA[%dw 2.0
 output application/json
 ---
-{"drawExternalID": (vars.metadata map ((item, index) -> item.drawExternalIDLanded)) distinctBy $,
-"srtxExternalID": (vars.metadata map ((item, index) -> item.srtxExternalIDLanded)) distinctBy $
+{
+"drawExternalID": (vars.metadata map ((item, index) -> item.drawExternalIDLanded)) distinctBy $,
+"srtxExternalID": (vars.metadata map ((item, index) -> item.srtxExternalIDLanded)) distinctBy $,
+"LITM": (vars.metadata map ((item, index) -> item.IBLITM)) distinctBy $
 }]]></ee:set-variable>
+						<ee:set-variable variableName="draw" ><![CDATA[%dw 2.0
+output application/json
+---
+(vars.metadata map((item,index)->
+	{
+		"draw": item."drawExternalIDLanded",
+		"LITM": item.IBLITM
+	}
+) distinctBy $.draw) filter (!isEmpty($.draw))]]></ee:set-variable>
+						<ee:set-variable variableName="srtx" ><![CDATA[%dw 2.0
+output application/json
+---
+(vars.metadata map((item,index)->
+	{
+		"srtx": item."srtxExternalIDLanded",
+		"LITM": item.IBLITM
+	}
+) distinctBy $."srtx") filter (!isEmpty($."srtx"))]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="7f09172a-5630-4aa0-b060-460ddeb49711" message='#["\n Calling landed-min-max-subflow"]' />
 				<flow-ref doc:name="Flow Reference" doc:id="cdcbea4f-c4e0-443d-8914-07b2040253be" name="landed-min-max-choice-subflow"/>
 				<logger level="INFO" doc:name="END-Logger" doc:id="b92c7dbe-b6d0-44ed-a1da-e1d6631e4adf" message='#["\n Products API finished processing"]' />
 			</when>
@@ -139,7 +166,7 @@ vars.metadata]]></ee:set-payload>
 		</ee:transform>
 		<choice doc:name="Choice" doc:id="80c4c3a9-c855-4c98-a05f-bd2d4511a9c3" >
 			<when expression="#[payload !=[]]" >
-				<scatter-gather doc:name="Scatter-Gather" doc:id="ca87f6bb-121f-4300-a217-590d033bd50e" maxConcurrency="1" >
+				<scatter-gather doc:name="Scatter-Gather" doc:id="ca87f6bb-121f-4300-a217-590d033bd50e">
 					<route >
 						<ee:transform doc:name="drawExternalIDLanded" doc:id="0f3a8652-c510-4bd8-a101-bc2e4e6a934a" >
 							<ee:message >
@@ -155,11 +182,7 @@ var neitherArray = payload filter (item) ->
   !(item.srtxExternalIDLanded? or item.drawExternalIDLanded? )
 
 ---
-{
-  //"srtxResults": srtxArray filter ((item) -> item != null),
-  "drawResults": drawArray filter ((item) -> item != null),
-  //"noOperation": neitherArray
-}]]></ee:set-payload>
+ drawArray filter ((item) -> item != null)]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="exId" ><![CDATA[%dw 2.0
@@ -168,11 +191,21 @@ output application/json
 "drawExternalIDLanded"]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
-						<ee:transform doc:name="Transform Message" doc:id="8bf14ca6-dd77-4be3-8d35-11d924347459" >
+						<ee:transform doc:name="Transform Message" doc:id="4237ee7c-562d-48e6-b8d3-8ca0a6e0a869" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
+((payload map()-> $ - "drawExternalIDLanded" - "IMSRTX" - "IMLITM" - "IBLITM" ++ "External_ID__c": $."drawExternalIDLanded") map ((item,index)-> item ++ {"Part_Number_Type__c": "Base", "Name": trim(item."IMDRAW"),
+	"ProductCode": trim(item."IMDRAW")
+})) map()-> $ - "IMDRAW"]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="8bf14ca6-dd77-4be3-8d35-11d924347459" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
 if(vars.exId == "drawExternalIDLanded")
   payload.drawResults map() -> {
     "a": $ - "drawExternalIDLanded" ++ "External_ID__c": $."drawExternalIDLanded" 
@@ -181,11 +214,10 @@ if(vars.exId == "drawExternalIDLanded")
  else
 (payload.srtxResults map() -> {
     "a": $ - "srtxExternalIDLanded" ++ "External_ID__c": $."srtxExternalIDLanded" 
-  })]]></ee:set-payload>
+  })&#93;&#93;></ee:set-payload>
 							</ee:message>
-						</ee:transform>
+						</ee:transform> [STUDIO] -->
 						<logger level="INFO" doc:name="Logger" doc:id="993cb74a-45cb-43c5-91e6-2919807faf8f" message='#["\n Base Part External ID Landed Created. Calling products-flow-reference"]'/>
-						<logger level="DEBUG" doc:name="Debug-Logger" doc:id="9a0d6f30-1367-4e11-80a9-36bbe4ac64da" message="#[vars.exId]"/>
 						<flow-ref doc:name="products-flow-reference" doc:id="42e134c6-0eca-453b-9c91-04f819656e26" name="productsFlow" />
 					</route>
 					<route >
@@ -203,11 +235,9 @@ var neitherArray = payload filter (item) ->
   !(item.srtxExternalIDLanded? or item.drawExternalIDLanded? )
 
 ---
-{
-  "srtxResults": srtxArray filter ((item) -> item != null),
+srtxArray filter ((item) -> item != null)
   //"drawResults": drawArray filter ((item) -> item != null),
-  //"noOperation": neitherArray
-}]]></ee:set-payload>
+  //"noOperation": neitherArra]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
 								<ee:set-variable variableName="exId" ><![CDATA[%dw 2.0
@@ -216,11 +246,21 @@ output application/json
 "srtxExternalIDLanded"]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
-						<ee:transform doc:name="Transform Message" doc:id="e5c87113-58fb-43db-9ece-92915f4b7fc3" >
+						<ee:transform doc:name="Transform Message" doc:id="c20c1808-57ff-47a2-af23-8c0063d30e9b" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
+((payload map()->$ - "srtxExternalIDLanded" - "IMDRAW" - "IMLITM" - "IBLITM"  ++ "External_ID__c": $."srtxExternalIDLanded") map ((item,index)-> item ++ {"Part_Number_Type__c": "Industry", "Name": trim(item."IMSRTX"),
+	"ProductCode": trim(item."IMSRTX")
+})) map()-> $ - "IMSRTX"]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="e5c87113-58fb-43db-9ece-92915f4b7fc3" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
 if(vars.exId == "drawExternalIDLanded")
   payload.drawResults map() -> {
     "a": $ - "drawExternalIDLanded" ++ "External_ID__c": $."drawExternalIDLanded" 
@@ -229,22 +269,23 @@ if(vars.exId == "drawExternalIDLanded")
  else
 (payload.srtxResults map() -> {
     "a": $ - "srtxExternalIDLanded" ++ "External_ID__c": $."srtxExternalIDLanded" 
-  })]]></ee:set-payload>
+  })&#93;&#93;></ee:set-payload>
 							</ee:message>
-						</ee:transform>
+						</ee:transform> [STUDIO] -->
 						<logger level="INFO" doc:name="Logger" doc:id="57888520-9b3e-4a6c-bb2e-8e9deae8acf4" message='#["\n INDUSTRY Part External ID Landed Created. Calling products-flow-reference"]'/>
-						<logger level="DEBUG" doc:name="Debug-Logger" doc:id="aa3ad80e-6956-441d-b38e-cc514c413032" message="#[vars.exId]"/>
 						<flow-ref doc:name="products-flow-reference" doc:id="643f60c1-f585-4ac8-b41d-1b38b8bffa82" name="productsFlow" />
 					</route>
 				</scatter-gather>
 			</when>
 			<otherwise >
-				<logger level="INFO" doc:name="Inavlid Inputs to process" doc:id="93b3ab20-c7ca-425f-9b76-451fe22086e5" message='#["\n No Valid Inputs to Process"]' />
+				<logger level="INFO" doc:name="Inavlid Inputs to process" doc:id="93b3ab20-c7ca-425f-9b76-451fe22086e5" message='#[%dw 2.0 &#10;output application/json &#10;var message1 = "products-mapping-subflow"&#10;var message2 = "Could not proceed with the batch processing due to insufficient data. Valid DRAW EXTERNAL ID NOT FOUND to process further"&#10;var message3 = "Could not proceed with the batch processing due to insufficient data. Valid SRTX EXTERNAL ID NOT FOUND to process further"&#10;&#10;--- &#10;(if (vars.contextLog.drawExternalIDLanded == [null]) &#10;{&#10;	"Flow that did not work ": message1,&#10;	"Message to Debug": message2,&#10;	contextLog: vars.contextLog&#10;}&#10;else {&#10;	"Flow that did not work ": message1,&#10;	"Message to Debug": message3,&#10;	contextLog: vars.contextLog&#10;})]' />
 			</otherwise>
 		</choice>
 	</sub-flow>
 	<flow name="productsFlow" doc:id="206df059-5e14-42f2-b69f-9d2966de8079">
-		<batch:job jobName="productsBatch_Job" doc:id="9daeb12f-d6a5-4dd3-9250-2a0b4cea3549" maxFailedRecords="${batch.maxFailedRecords}" blockSize="${batch.size}">
+		<choice doc:name="Choice" doc:id="d6be7771-f381-4811-9d7f-d80f08953c51" >
+			<when expression="#[!isEmpty(payload)]">
+				<batch:job jobName="productsBatch_Job" doc:id="9daeb12f-d6a5-4dd3-9250-2a0b4cea3549" maxFailedRecords="${batch.maxFailedRecords}" blockSize="${batch.size}">
 			<batch:process-records>
 				<batch:step name="Batch_Step" doc:id="1d9db3de-471f-466f-8549-7982278ca725">
 					<ee:transform doc:name="Transform Message" doc:id="77d59879-687f-453d-8227-497c3f4585c2">
@@ -254,8 +295,9 @@ if(vars.exId == "drawExternalIDLanded")
 						<ee:variables>
 						</ee:variables>
 					</ee:transform>
-					<choice doc:name="Choice" doc:id="d8ac2292-6e52-4f71-b497-d9df1025bc42" >
-						<when expression='#[payload.a."External_ID__c" != null]'>
+					<logger level="INFO" doc:name="Logger" doc:id="22aabd1b-ffb5-406b-a86b-49491946da9a" message="#[payload]"/>
+							<choice doc:name="Choice" doc:id="d8ac2292-6e52-4f71-b497-d9df1025bc42">
+						<when expression='#[payload."External_ID__c" != null]'>
 							<try doc:name="Try" doc:id="bd34a49d-19f5-4516-9fa2-db97da294911">
 						<salesforce:query doc:name="Check Base External Id in Salesforce" doc:id="7bdad15c-8a8e-4d36-8312-11c4373a15c8" config-ref="Salesforce_Config" target="SFExtId">
 						<reconnect-forever />
@@ -263,12 +305,12 @@ if(vars.exId == "drawExternalIDLanded")
 						<salesforce:parameters><![CDATA[#[output application/java
 ---
 {
-	externalId__c : "'" ++ payload.a."External_ID__c" ++ "'"
+	externalId__c : "'" ++ payload."External_ID__c" ++ "'"
 }]]]></salesforce:parameters>
 					</salesforce:query>
-						<error-handler ref="global-error-handler" />
+						<logger level="INFO" doc:name="Logger" doc:id="96ed7ad4-d6aa-491e-be73-cac470a09032" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{"Product External ID Queired in Salesforce" :  payload."External_ID__c",&#10;"SF Object Id Returned from Salesforce" : vars.SFExtId[0].Id&#10;}]'/>
+										<error-handler ref="global-error-handler" />
 					</try>
-							<logger level="DEBUG" doc:name="Logger" doc:id="88d13608-ae81-4d15-85a9-77c0ebe843aa" message="#['Logging After SF EXTERAL QUERY']" />
 							<choice doc:name="create-payload-for-product-upsert" doc:id="6de037f1-2d01-4dd8-8fd7-a0877c7fbb4a" tracking:enable-default-events="true">
 						<when expression="#[sizeOf(vars.SFExtId) != 0]">
 							<ee:transform doc:name="Update Product Payload" doc:id="72b2361c-6e60-442d-ac32-e6cd34884f89">
@@ -278,6 +320,7 @@ if(vars.exId == "drawExternalIDLanded")
 								<ee:variables>
 								</ee:variables>
 					</ee:transform>
+											<logger level="INFO" doc:name="Logger" doc:id="43fc0eca-c5c0-4fdb-8724-76fcdc4b5d79" message='#[%dw 2.0&#10;output application/json&#10;---&#10;payload.operation ++ " Operation Intiated for SalesForce Object ID :" &#10;++ payload.data.id default " SalesForce Object ID : null"]'/>
 						</when>
 						<otherwise>
 							<ee:transform doc:name="CreateProduct Payload" doc:id="c33e8313-48bd-4821-8885-4d5af4fb92b9">
@@ -287,61 +330,60 @@ if(vars.exId == "drawExternalIDLanded")
 								<ee:variables>
 								</ee:variables>
 							</ee:transform>
+											<logger level="INFO" doc:name="Logger" doc:id="92b2fa01-1c4c-4061-a5df-e6133947e23e" message='#[%dw 2.0&#10;output application/json&#10;---&#10;payload.operation ++ " Operation Intiated for SalesForce Object ID :" ++ payload.data.id default " SalesForce Object ID : null"]'/>
 						</otherwise>
 					</choice>
-							<logger level="DEBUG" doc:name="Logger" doc:id="1b7b327f-e159-478c-b172-3a294c27f791" message='#["/n size of Payload after create payload for product upsert : " ++ payload]'/>
 						</when>
-						<otherwise >
-							<logger level="INFO" doc:name="Logger" doc:id="fe0e03bf-49d8-4da2-9b22-89b9d9a66340" message='#["\n Invalid Record beacuse the External_ID__c From Initial Mapping is identified as null. "]' />
-							<logger level="INFO" doc:name="Logger" doc:id="991a4341-8c93-463e-8ae3-98e342363b85" message='#["\n" ++ payload.a]'/>
+						<otherwise>
+							<logger level="INFO" doc:name="Logger" doc:id="fe0e03bf-49d8-4da2-9b22-89b9d9a66340" message='#[%dw 2.0 &#10;output application/json &#10;var message1 = "Batch Step inside the productsBatch_Job"&#10;var message2 = "Did not query Salesforce for External Id due to insufficient data"&#10;--- &#10;(if (payload."External_ID__c" == null) &#10;{&#10;	"Flow that did not work ": message1,&#10;	"Message to Debug": message2,&#10;	contextLog: vars.contextLog&#10;}&#10;else  "No Issues Found")]' />
 						</otherwise>
 					</choice>
 					<batch:aggregator doc:name="Batch Aggregator" doc:id="4cbb27f0-2198-4ed4-bc33-19fb815eb493" size="200">
 						<logger level="INFO" doc:name="Logger" doc:id="a2d61fb7-8727-48c2-b689-f189fdbe3d8b" message='#["\n Start Batch Aggregator in Products"]' />
-						<ee:transform doc:name="Transform Message" doc:id="9aff052a-91a3-4e5e-ab7d-ad7cc62078c8" >
-							<ee:message >
-								<ee:set-payload ><![CDATA[%dw 2.0
+						<ee:transform doc:name="Transform Message" doc:id="9aff052a-91a3-4e5e-ab7d-ad7cc62078c8">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 payload map read( $, 'application/json')]]></ee:set-payload>
 							</ee:message>
-							<ee:variables >
-								<ee:set-variable variableName="aggregatorValue" ><![CDATA[%dw 2.0
+							<ee:variables>
+								<ee:set-variable variableName="aggregatorValue"><![CDATA[%dw 2.0
 output application/json
 ---
 payload map read( $, 'application/json')]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
-						<ee:transform doc:name="split-update-create-records" doc:id="c51fe765-208c-4a60-a459-15099d80b22e" >
-							<ee:message >
+						<ee:transform doc:name="split-update-create-records" doc:id="c51fe765-208c-4a60-a459-15099d80b22e">
+							<ee:message>
 								<ee:set-payload resource="dwl/split-update-create-records.dwl" />
 							</ee:message>
-							<ee:variables >
+							<ee:variables>
 							</ee:variables>
 						</ee:transform>
-						<flow-ref doc:name="create-update-products-subflow" doc:id="18585d7a-1d6b-4a7b-b9ca-f145c90848c6" name="create-update-products-subflow" targetValue="#[aggregatorValue]"/>
+						<flow-ref doc:name="create-update-products-subflow" doc:id="18585d7a-1d6b-4a7b-b9ca-f145c90848c6" name="create-update-products-subflow" targetValue="#[aggregatorValue]" />
 						<logger level="INFO" doc:name="Logger" doc:id="ff165725-d3ed-463f-b0a8-9504409f9854" message='#["\n Batch Aggregator Processing Complete"]' />
 					</batch:aggregator>
 				
 </batch:step>
 				<batch:step name="handle-products-batch-errors" doc:id="ea9671b7-5bd0-4148-a241-e3ac8fd00e35" acceptPolicy="ONLY_FAILURES">
-					<!-- [STUDIO:"Batch Aggregator"]<batch:aggregator doc:name="Batch Aggregator" doc:id="098d35ac-023a-423d-9a8f-b26100e60688" size="200">
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="098d35ac-023a-423d-9a8f-b26100e60688" size="200">
 						<ee:transform doc:name="Transform Message" doc:id="b41138a4-ed98-454d-bc02-1c173445ec27">
 						<ee:message>
 							<ee:set-payload><![CDATA[%dw 2.0
 output application/json
-&#45;&#45;-
-payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
+---
+payload map read( $, 'application/json')]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
-						<logger level="INFO" doc:name="Logger" doc:id="8768b61a-cef5-4d5a-928b-eac2757928c3" message="#[payload&#93;"/>
-						<email:send doc:name="send-batch-error-emails" doc:id="720b2eb3-30c9-41bb-ac7d-2918f2d59fb5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')&#93;" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;&#93;" >
+						<logger level="INFO" doc:name="Logger" doc:id="8768b61a-cef5-4d5a-928b-eac2757928c3" message="#[payload]"/>
+						<email:send doc:name="send-batch-error-emails" doc:id="720b2eb3-30c9-41bb-ac7d-2918f2d59fb5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" >
 							<email:body contentType="text/html" encoding="UTF-8" >
 								<email:content ><![CDATA[#[%dw 2.0
 	output application/xml
 	skipNullOn="everywhere"
 
-	&#45;&#45;-
+	---
 	{
 		"html":{
 			"body":{
@@ -373,49 +415,82 @@ payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
 				}
 			}
 		}
-	}&#93;&#93;&#93;></email:content>
+	}]]]></email:content>
 							</email:body>
-							<email:attachments ><![CDATA[#[{"Products_Failures.csv": payload}&#93;&#93;&#93;></email:attachments>
+							<email:attachments ><![CDATA[#[{"Products_Failures.csv": payload}]]]></email:attachments>
 						</email:send>
-					</batch:aggregator> [STUDIO] -->
+					</batch:aggregator>
 					<set-payload value="#[Batch::getStepExceptions()]" doc:name="Set Payload" doc:id="1f708caa-d356-4dba-a536-7ffbb92c04a3" />
 					<foreach doc:name="For Each" doc:id="14f819e6-b683-4429-a11c-b3f6b20e4215" collection="#[payload.values()]">
 						<logger level="INFO" doc:name="Logger" doc:id="f6509213-9c6e-4ae5-8d6d-9148a137c03d" message='#["\n Handling Products Batch Errors."]' />
-						<logger level="INFO" doc:name="Logger" doc:id="f5395580-e24a-4e87-a787-91f94a18ff96" message="#[payload]"/>
+						<logger level="INFO" doc:name="Logger" doc:id="f5395580-e24a-4e87-a787-91f94a18ff96" message="#[payload]" />
 					</foreach>
 				</batch:step>
 			</batch:process-records>
-			<batch:on-complete >
-				<ee:transform doc:name="Transform Message" doc:id="a258f6ca-5848-4d0d-9aab-433db1bcd09e" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+			<batch:on-complete>
+				<ee:transform doc:name="Transform Message" doc:id="a258f6ca-5848-4d0d-9aab-433db1bcd09e">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="ecea1a8c-bb37-4a25-b1f0-12f6a8f9eb62" message="#['\n'] Main PRODUCTS batch is completed ==&gt;  #[payload]"/>
+				<logger level="INFO" doc:name="Logger" doc:id="ecea1a8c-bb37-4a25-b1f0-12f6a8f9eb62" message="#['\n'] Main PRODUCTS batch is completed ==&gt;  #[payload]" />
 			</batch:on-complete>
 		</batch:job>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="b6419372-4cb4-437f-8f35-fd57a4bf984f" message='#[%dw 2.0 &#10;output application/json &#10;var message1 = "products-mapping-subflow"&#10;var message2 = "Could not proceed with the batch processing due to insufficient data. Valid DRAW EXTERNAL ID NOT FOUND to process further"&#10;var message3 = "Could not proceed with the batch processing due to insufficient data. Valid SRTX EXTERNAL ID NOT FOUND to process further"&#10;&#10;--- &#10;(if (vars.contextLog.drawExternalIDLanded == [null]) &#10;{&#10;	"Flow that did not work ": message1,&#10;	"Message to Debug": message2,&#10;	contextLog: vars.contextLog&#10;}&#10;else {&#10;	"Flow that did not work ": message1,&#10;	"Message to Debug": message3,&#10;	contextLog: vars.contextLog&#10;})]'/>
+			</otherwise>
+		</choice>
 		<error-handler ref="global-error-handler" />
 	</flow>
 	
 	
 	
-	<sub-flow name="landed-min-max-choice-subflow" doc:id="079492f5-9e09-4206-ab6d-36c1a7904fa8">
-		<choice doc:name="Choice" doc:id="813c08b9-c84d-4ca6-8912-5407ea3b461d">
-			<when expression="#[vars.metadata !=[]]">
-				<scatter-gather doc:name="Scatter-Gather" doc:id="89eb7dd9-36ee-4276-b4b0-9d2c6de0bfff" maxConcurrency="1">
+	<flow name="landed-min-max-choice-subflow" doc:id="079492f5-9e09-4206-ab6d-36c1a7904fa8">
+		<scatter-gather doc:name="Scatter-Gather" doc:id="89eb7dd9-36ee-4276-b4b0-9d2c6de0bfff">
 					<route>
-						<batch:job jobName="base-part-batch-job" doc:id="676b9064-96d0-44ff-8986-7698ff5a1c27" maxFailedRecords="${batch.maxFailedRecords}" blockSize="${batch.size}">
+					    <logger level="INFO" doc:name="Logger" doc:id="fd0fc14a-1f76-4a6c-91bc-41d282c0548d" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"landed draw started"]'/>
+				<ee:transform doc:name="Transform Message" doc:id="31c18fc6-0897-45a0-b4f0-63291184dda2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.draw]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+					</ee:variables>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="e4b8d7fa-4f6d-467f-bf68-3958422b1db3" >
+							<when expression="#[!isEmpty(payload)]">
+								<batch:job jobName="base-part-batch-job" doc:id="676b9064-96d0-44ff-8986-7698ff5a1c27" maxFailedRecords="${batch.maxFailedRecords}" blockSize="${batch.size}">
 					<batch:process-records>
-						<batch:step name="base-part-batch-step" doc:id="26ef4117-7dca-4ac2-88bc-88473b2900d2" acceptExpression='#[vars.metadata.drawExternalID != null  and vars.metadata.drawExternalID !="" and vars.metadata.drawExternalID != [] and vars.metadata.drawExternalID != [""]  ]'>
-							<ee:transform doc:name="Transform Message" doc:id="768e4397-806b-4020-89a3-767693083641">
+						<batch:step name="base-part-batch-step" doc:id="26ef4117-7dca-4ac2-88bc-88473b2900d2">
+							<ee:transform doc:name="Transform Message" doc:id="2a625865-98d1-44b3-a7d3-ff405342495c" >
+										<ee:message >
+										</ee:message>
+										<ee:variables >
+											<ee:set-variable variableName="LITM" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.LITM]]></ee:set-variable>
+											<ee:set-variable variableName="metadata" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+									<ee:transform doc:name="Transform Message" doc:id="768e4397-806b-4020-89a3-767693083641">
 					<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output text/plain
 ---
-readUrl("classpath://queryScript/sqlScript-landed-imdraw-$(p('mule.env')).dwl","text/plain")]]></ee:set-payload>
+//if(!isEmpty(vars.prccode))
+  //readUrl("classpath://queryScript/sqlScript-landed-imdraw-prccode-$(p('mule.env')).dwl","text/plain")
+//else 
+ readUrl("classpath://queryScript/sqlScript-landed-imdraw-$(p('mule.env')).dwl","text/plain")]]></ee:set-payload>
 
 					</ee:message>
 					<ee:variables>
@@ -423,7 +498,7 @@ readUrl("classpath://queryScript/sqlScript-landed-imdraw-$(p('mule.env')).dwl","
 </ee:variables>
 				</ee:transform>
 							<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="fefc2dd8-75e4-4f24-993f-3208b7bd3779" expression="#[payload]" />
-							<try doc:name="Try" doc:id="f79d49e5-89ac-4b27-a662-423aef7bed38" >
+							<try doc:name="Try" doc:id="f79d49e5-89ac-4b27-a662-423aef7bed38">
 										<db:select doc:name="Select" doc:id="945f3429-4252-439e-a851-6b94ab1c74c3" config-ref="Oracle_JDE_Database_Config">
 			<reconnect-forever />
 										<db:sql><![CDATA[#[payload]]]></db:sql>
@@ -433,45 +508,55 @@ readUrl("classpath://queryScript/sqlScript-landed-imdraw-$(p('mule.env')).dwl","
 									</try>
 									<ee:transform doc:name="Transform Message" doc:id="83875d5e-04c2-44b9-916b-bfbf665edf83">
 			<ee:message>
-											<ee:set-payload ><![CDATA[%dw 2.0
+											<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-(vars.metadata.drawExternalID map ((item, index) ->{       
-	"External_ID__c":item,
+{       
+	"External_ID__c": vars.metadata.draw,
     "Landed_Cost_Min__c": payload[0].LANDED_COST_MIN_DRAW default 0,
     "Landed_Cost_Max__c": payload[0].LANDED_COST_MAX_DRAW default 0
     
-}))[0]
+}
+ 
  ]]></ee:set-payload>
 			</ee:message>
-										<ee:variables >
+										<ee:variables>
 										</ee:variables>
 		</ee:transform>
-									<batch:aggregator doc:name="Batch Aggregator" doc:id="a806d24f-b8c6-4a00-9e54-4ce553f0fa5a" streaming="true">
-										<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="2a577704-6be3-402e-b7f0-02780ee1822b">
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="a806d24f-b8c6-4a00-9e54-4ce553f0fa5a" size="200">
+										<ee:transform doc:name="Transform Message" doc:id="2a577704-6be3-402e-b7f0-02780ee1822b">
 											<ee:message>
 												<ee:set-payload><![CDATA[%dw 2.0
 output application/json
-&#45;&#45;-
-payload map read( $, 'application/json') //distinctBy ((item, index) -> item)&#93;&#93;></ee:set-payload>
+---
+payload map read( $, 'application/json')
+//map read( $, 'application/json')) //distinctBy ((item, index) -> item)]]></ee:set-payload>
 											</ee:message>
-										</ee:transform> [STUDIO] -->
-										<choice doc:name="Choice" doc:id="abcdb722-ca86-4614-9c8a-96e48e6cf508">
-											<when expression="#[payload != null]">
-												<logger level="INFO" doc:name="Logger" doc:id="a8c6ecba-4953-4a38-8e47-32822284c731" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"Starting Landed Cost Upsert for BASE Parts "]' />
-												<try doc:name="Try" doc:id="197debc9-df84-4200-b0d1-87cd96a1c276" >
+										</ee:transform>
+										<logger level="INFO" doc:name="Logger" doc:id="4df8cb17-a236-46ce-ad0c-62a35dbdc6c8" message="#[sizeOf(payload)]"/>
+										<logger level="INFO" doc:name="Logger" doc:id="a8c6ecba-4953-4a38-8e47-32822284c731" message="#[%dw 2.0&#10;output application/java&#10;---&#10;&quot;Starting Landed Cost Upsert for draw BASE Parts &quot; ++ write(payload, 'application/json')]" />
+										<try doc:name="Try" doc:id="197debc9-df84-4200-b0d1-87cd96a1c276">
 													<salesforce:upsert doc:name="Upsert" doc:id="073d3b2d-9324-4a38-bf28-2091531982e7" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}">
 												</salesforce:upsert>
 													<logger level="INFO" doc:name="Logger" doc:id="917a4821-8aa5-4e0f-8b3e-cad4bc43f7af" message='#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	"MessageSender": "landed-min-max-base-part-upsert",&#10;	failedId: $.exception.message,&#10;	message: $.message,&#10;	Successful: $.successful	&#10;})]' />
 													<error-handler ref="global-error-handler" />
 												</try>
+										<!-- [STUDIO:"Choice"]<choice doc:name="Choice" doc:id="abcdb722-ca86-4614-9c8a-96e48e6cf508">
+											<when expression="#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;!isEmpty(payload)&#93;">
+												<ee:transform doc:name="Transform Message" doc:id="b729a01b-2060-47aa-bda4-fc95b9a279d0">
+													<ee:message>
+														<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+(payload filter (item) -> not isEmpty(item.External_ID__c)) distinctBy ((item1, index) -> item1.External_ID__c)&#93;&#93;></ee:set-payload>
+													</ee:message>
+												</ee:transform>
 											</when>
 											<otherwise>
 												<logger level="INFO" doc:name="Logger" doc:id="ff2fe0b0-8459-4cde-afe8-496fe9e2ce62" message="Nothing to Update in this run" />
 											</otherwise>
-										</choice>
+										</choice> [STUDIO] -->
 									</batch:aggregator>
-									<logger level="INFO" doc:name="Logger" doc:id="e03c71f3-fb9f-46bd-a436-8a8277d1f268" message="#[payload]"/>
 						</batch:step>
 								<batch:step name="Handle-Batch-Errors" doc:id="548dbd5b-1c69-4e10-bddd-2489b59bff08" acceptPolicy="ONLY_FAILURES">
 					<ee:transform doc:name="Transform Message" doc:id="bc8a16ee-cc98-4596-86bf-d3417b7e9540">
@@ -479,7 +564,7 @@ payload map read( $, 'application/json') //distinctBy ((item, index) -> item)&#9
 							<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-payload map read( $, 'application/json') distinctBy ((item, index) -> item)]]></ee:set-payload>
+payload]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
 					<batch:aggregator doc:name="Batch Aggregator" doc:id="65aa30bc-f856-4d02-8705-2da1ef3fae02" size="100">
@@ -492,7 +577,7 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 							</ee:message>
 						</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="1c88cf02-5b3e-41ad-a024-ad3896aba703" message="#[' \n '] #[payload] " />
-										<try doc:name="Try" doc:id="0f90758e-c55b-4b27-b761-4e4a9fab267e" >
+										<try doc:name="Try" doc:id="0f90758e-c55b-4b27-b761-4e4a9fab267e">
 											<email:send doc:name="Send" doc:id="22c119db-da3a-414c-89b2-ece7e66c974b" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Batch Process Error Handling in  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]">
 							<email:body contentType="text/html" encoding="UTF-8">
 								<email:content><![CDATA[#[%dw 2.0
@@ -538,7 +623,7 @@ skipNullOn="everywhere"
 						</email:send>
 											<error-handler ref="global-error-handler" />
 										</try>
-										<logger level="INFO" doc:name="Logger" doc:id="5a7a22c9-0741-4559-9602-31e6b2d283e5" message="#['\n'] Landed min-max BASE Part Error Handling Completed."/>
+										<logger level="INFO" doc:name="Logger" doc:id="5a7a22c9-0741-4559-9602-31e6b2d283e5" message="#['\n'] Landed min-max BASE Part Error Handling Completed." />
 					</batch:aggregator>
 				</batch:step>
 					</batch:process-records>
@@ -554,17 +639,52 @@ payload]]></ee:set-payload>
 								<logger level="INFO" doc:name="Logger" doc:id="d2ee1aa1-741e-43f4-814c-ab7cf5245802" message="#['\n'] Landed min-max Base part batch is completed ==&gt;  #[payload]" />
 							</batch:on-complete>
 				</batch:job>
+							</when>
+					<otherwise >
+								<logger level="INFO" doc:name="Logger" doc:id="ea202d4e-3716-4f5c-8243-159409854aec" message='#["no landed draw"]'/>
+							</otherwise>
+						</choice>
 					</route>
-					<route>
-						<batch:job jobName="industry-part-batch-job" doc:id="0a773dae-f720-426b-9956-d078bbe923a6" maxFailedRecords="${batch.maxFailedRecords}" blockSize="${batch.size}">
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="d123dda0-d5ab-4614-a90e-13c210209683" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"landed srtx started"]'/>
+				<ee:transform doc:name="Transform Message" doc:id="b2592117-27c1-4736-b0a4-4bccc4e2174d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.srtx]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+					</ee:variables>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="eefeb3f4-c04a-408b-896c-616c4b3bead7">
+							<when expression="#[!isEmpty(payload)]">
+								<batch:job jobName="industry-part-batch-job" doc:id="0a773dae-f720-426b-9956-d078bbe923a6" maxFailedRecords="${batch.maxFailedRecords}" blockSize="${batch.size}">
 					<batch:process-records>
-						<batch:step name="industry-part-batch-step" doc:id="07aa14b3-02df-4af3-b8d8-d469670865d9" acceptExpression='#[vars.metadata.srtxExternalID != null  and vars.metadata.srtxExternalID !="" and vars.metadata.srtxExternalID != []  and vars.metadata.srtxExternalID != [""] ]'>
-							<ee:transform doc:name="Transform Message" doc:id="b41912f6-6482-4298-9a50-1dac14b01991">
+						<batch:step name="industry-part-batch-step" doc:id="07aa14b3-02df-4af3-b8d8-d469670865d9">
+							<ee:transform doc:name="Transform Message" doc:id="b79678a6-06bc-46be-8e39-b2e774275f27" >
+										<ee:message >
+										</ee:message>
+										<ee:variables >
+											<ee:set-variable variableName="LITM" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.LITM]]></ee:set-variable>
+											<ee:set-variable variableName="metadata" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+										</ee:variables>
+									</ee:transform>
+									<ee:transform doc:name="Transform Message" doc:id="b41912f6-6482-4298-9a50-1dac14b01991">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output text/plain
 ---
-readUrl("classpath://queryScript/sqlScript-landed-imsrtx-$(p('mule.env')).dwl","text/plain")]]></ee:set-payload>
+//if(!isEmpty(vars.prccode))
+ //readUrl("classpath://queryScript/sqlScript-landed-imsrtx-prccode-$(p('mule.env')).dwl","text/plain") 
+//else
+ readUrl("classpath://queryScript/sqlScript-landed-imsrtx-$(p('mule.env')).dwl","text/plain")]]></ee:set-payload>
 
 			</ee:message>
 			<ee:variables>
@@ -572,7 +692,7 @@ readUrl("classpath://queryScript/sqlScript-landed-imsrtx-$(p('mule.env')).dwl","
 </ee:variables>
 		</ee:transform>
 							<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="04f185a5-2197-4225-88b6-2a6375f09da7" expression="#[payload]" />
-							<try doc:name="Try" doc:id="0139f3e0-e4ad-419f-bc80-d263d99d7ebf" >
+							<try doc:name="Try" doc:id="0139f3e0-e4ad-419f-bc80-d263d99d7ebf">
 										<db:select doc:name="Select" doc:id="68bc6a69-ca3f-4ba3-9031-2b397f53f79a" config-ref="Oracle_JDE_Database_Config">
 										<reconnect />
 										<db:sql><![CDATA[#[payload]]]></db:sql>
@@ -584,51 +704,57 @@ readUrl("classpath://queryScript/sqlScript-landed-imsrtx-$(p('mule.env')).dwl","
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-(vars.metadata.srtxExternalID map ((item, index) ->{       
-	"External_ID__c":item,
-    "Landed_Cost_Min__c": payload[0].Landed_Cost_Min_SRTX default 0,
-    "Landed_Cost_Max__c": payload[0].Landed_Cost_Max_SRTX default 0
+{       
+	"External_ID__c": vars.metadata.srtx,
+    "Landed_Cost_Min__c": payload[0].LANDED_COST_MIN_DRAW default 0,
+    "Landed_Cost_Max__c": payload[0].LANDED_COST_MAX_DRAW default 0
     
-}))[0]]]></ee:set-payload>
+}
+ 
+ ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-									<batch:aggregator doc:name="Batch Aggregator" doc:id="b815077b-7b4c-4e8a-82bd-e97544331cd5" streaming="true">
-										<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="a291e3c3-fa43-49b1-ad67-ca2572bcf20b">
+									<batch:aggregator doc:name="Batch Aggregator" doc:id="b815077b-7b4c-4e8a-82bd-e97544331cd5" size="200">
+										<ee:transform doc:name="Transform Message" doc:id="a291e3c3-fa43-49b1-ad67-ca2572bcf20b">
 											<ee:message>
 												<ee:set-payload><![CDATA[%dw 2.0
 output application/json
-&#45;&#45;-
-payload map read( $, 'application/json') //distinctBy ((item, index) -> item)
-
-%dw 2.0
-output application/json
-&#45;&#45;-
-payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
+---
+payload map read( $, 'application/json')
+//flatten(payload map read( $, 'application/json')) //distinctBy ((item, index) -> item)]]></ee:set-payload>
 											</ee:message>
 											<ee:variables >
 												<ee:set-variable variableName="varPayload" ><![CDATA[%dw 2.0
 output application/java
-&#45;&#45;-
+---
 {
-}&#93;&#93;></ee:set-variable>
+}]]></ee:set-variable>
 											</ee:variables>
-										</ee:transform> [STUDIO] -->
-										<choice doc:name="Choice" doc:id="41ca8b2b-fce2-414a-8f5d-6c25effcf468" >
-											<when expression='#[payload != null]'>
-												<logger level="INFO" doc:name="Logger" doc:id="8b79cefe-1bfe-444c-9cff-8bd87a8a8da7" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"Starting Landed Cost Upsert for SRTX "]'/>
-												<try doc:name="Try" doc:id="f1c9a82d-cdc8-412c-94e9-2e4ce3cf3ef4" >
+										</ee:transform>
+										<logger level="INFO" doc:name="Logger" doc:id="3d519bed-0bb7-4cd1-8161-24ed25eff9bc" message="#[sizeOf(payload)]"/>
+										<logger level="INFO" doc:name="Logger" doc:id="8b79cefe-1bfe-444c-9cff-8bd87a8a8da7" message="#[%dw 2.0&#10;output application/java&#10;---&#10;&quot;Starting Landed Cost Upsert for SRTX industry &quot; ++ write(payload, 'application/json')]" />
+										<try doc:name="Try" doc:id="f1c9a82d-cdc8-412c-94e9-2e4ce3cf3ef4">
 													<salesforce:upsert doc:name="Upsert" doc:id="68694f18-4a38-4322-acf7-dc7ba9ebf053" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}">
 										</salesforce:upsert>
 													<logger level="INFO" doc:name="Logger" doc:id="0dfe4e5e-54e2-4253-b061-7d6c35225b5a" message='#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	"MessageSender": "landed-min-max-base-industry-upsert",&#10;	failedId: $.exception.message,&#10;	message: $.message,&#10;	Successful: $.successful	&#10;})]' />
 													<error-handler ref="global-error-handler" />
 												</try>
+										<!-- [STUDIO:"Choice"]<choice doc:name="Choice" doc:id="41ca8b2b-fce2-414a-8f5d-6c25effcf468">
+											<when expression="#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;!isEmpty(payload)&#93;">
+												<ee:transform doc:name="Transform Message" doc:id="ef8998e2-61a3-46a8-ab6c-71e1aa4db5fd">
+													<ee:message>
+														<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+(payload filter (item) -> not isEmpty(item.External_ID__c)) distinctBy ((item1, index1) -> item1.External_ID__c)&#93;&#93;></ee:set-payload>
+													</ee:message>
+												</ee:transform>
 											</when>
-											<otherwise >
-												<logger level="INFO" doc:name="Logger" doc:id="d5b3acba-ca9a-4652-a98e-efebf8460427" message="Nothing to Update in this run"/>
+											<otherwise>
+												<logger level="INFO" doc:name="Logger" doc:id="d5b3acba-ca9a-4652-a98e-efebf8460427" message="Nothing to Update in this run" />
 											</otherwise>
-										</choice>
+										</choice> [STUDIO] -->
 									</batch:aggregator>
-									<logger level="INFO" doc:name="Logger" doc:id="efbd577d-9a53-4e3a-b555-8fb6818c6c34" message="#[payload]"/>
 						
 						</batch:step>
 						<batch:step name="Handle-Batch-Errors" doc:id="8b2c8373-19ee-41fb-bbff-fff504b8ca5c" acceptPolicy="ONLY_FAILURES">
@@ -637,7 +763,7 @@ output application/java
 							<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-payload map read( $, 'application/json') distinctBy ((item, index) -> item)]]></ee:set-payload>
+payload]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
 					<batch:aggregator doc:name="Batch Aggregator" doc:id="347930d3-9397-415e-ad22-e84fb52565da" size="100">
@@ -650,7 +776,7 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 							</ee:message>
 						</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="a189153d-b0ed-4390-83f9-e801a9ce918f" message="#[' \n '] #[payload] " />
-										<try doc:name="Try" doc:id="e53316d2-20f7-444d-858c-480704c93528" >
+										<try doc:name="Try" doc:id="e53316d2-20f7-444d-858c-480704c93528">
 											<email:send doc:name="Send" doc:id="f319f1c0-ffe5-4549-a42d-5126fd86f1c5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Batch Process Error Handling in  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]">
 							<email:body contentType="text/html" encoding="UTF-8">
 								<email:content><![CDATA[#[%dw 2.0
@@ -696,7 +822,7 @@ skipNullOn="everywhere"
 						</email:send>
 											<error-handler ref="global-error-handler" />
 										</try>
-										<logger level="INFO" doc:name="Logger" doc:id="5cc0fdaf-a5b9-4561-aa6a-3b7a4a0e9c60" message="#['\n'] Landed min-max INDUSTRY Part Error Handling Completed."/>
+										<logger level="INFO" doc:name="Logger" doc:id="5cc0fdaf-a5b9-4561-aa6a-3b7a4a0e9c60" message="#['\n'] Landed min-max INDUSTRY Part Error Handling Completed." />
 					</batch:aggregator>
 				</batch:step>
 					</batch:process-records>
@@ -712,12 +838,15 @@ payload]]></ee:set-payload>
 								<logger level="INFO" doc:name="Logger" doc:id="8fa3785c-bb1f-4734-85f6-4e61ff3b3483" message="#['\n'] Landed min-max Industry part batch is completed ==&gt;  #[payload]" />
 							</batch:on-complete>
 				</batch:job>
-					</route>
+							</when>
+					<otherwise>
+								<logger level="INFO" doc:name="Logger" doc:id="aa00b81a-a544-49b9-9cd1-eea0df7fc2f0" message='#["no landed srtx"]' />
+							</otherwise>
+						</choice>
+			</route>
 				</scatter-gather>
-			</when>
-		
-</choice>
-	</sub-flow>
+			
+	</flow>
 	<sub-flow name="get-pricebook-id" doc:id="cb29d81e-e1f4-415d-9e7a-01c8ee0d4050">
 		<ee:transform doc:name="Transform Message" doc:id="48cb19e8-e866-445d-9f97-1195ef134e2c">
 			<ee:message>
