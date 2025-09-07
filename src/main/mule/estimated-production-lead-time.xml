@@ -20,7 +20,7 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 	<flow name="eplt-min-max-flow"
 		doc:id="ac8c8c25-e0df-466a-ab5a-ead4818c2906" tracking:enable-default-events="true" initialState="${eplt.initialState}">
 		<scheduler doc:name="eplt-scheduler"
-			doc:id="40ddd6c0-3868-4e2d-9a3c-b9c508d1344f">
+			doc:id="40ddd6c0-3868-4e2d-9a3c-b9c508d1344f" disallowConcurrentExecution="true">
 			<scheduling-strategy>
 				<fixed-frequency frequency="${scheduler.frequency}"
 					timeUnit="DAYS" startDelay="${scheduler.startDelay}" />
@@ -43,6 +43,7 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 			objectStore="Object_store_Previous_eplt_Job_Run">
 			<os:default-value><![CDATA[#[vars.epltjobRun]]]></os:default-value>
 		</os:retrieve>
+		<logger level="INFO" doc:name="Logger" doc:id="a1a57b78-1fd9-489f-a616-3fb8ef7ffd91" message="#[vars.previousepltJobRun]"/>
 		<logger level="INFO" doc:name="Logger"
 			doc:id="ec351cde-888f-4afb-aaa0-17b804ff7188"
 			message='#["Calling estimated-lead-time-min-max-subflow"]' category="${log.category}" />
@@ -83,7 +84,7 @@ readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dw
 		<flow-ref doc:name="estimated-production-lead-time-subflow" doc:id="876bb4f0-4b1c-4f65-83c8-88970449a665" name="estimated-production-lead-time-min-max-choice-subflow" />
 		<logger level="INFO" doc:name="Logger" doc:id="8d203da8-7a0e-4a06-a7a3-7b2bb9b77f36" message="************** ESTIMATED PRODUCT LEAD TIME MAX MIN Processing Completed Successfully ************************" />
 	</sub-flow>
-	<sub-flow name="estimated-production-lead-time-min-max-choice-subflow" doc:id="f19e18ce-ead0-4fd3-a9c4-66f52c8330be" >
+	<flow name="estimated-production-lead-time-min-max-choice-subflow" doc:id="f19e18ce-ead0-4fd3-a9c4-66f52c8330be" >
 		<choice doc:name="Choice" doc:id="4bf4e07a-2bf5-40cd-a3d1-d501a0a18743" >
 			<when expression="#[payload !=[]]">
 				<scatter-gather doc:name="Scatter-Gather" doc:id="19428e76-6b5d-4624-b32e-99b06b640b48" >
@@ -245,5 +246,5 @@ payload[0]]]></ee:set-payload>
 				<logger level="INFO" doc:name="Logger" doc:id="001f28cd-9fb1-429d-8c89-6d60300714a9" message="NOTHING TO UPDATE IN THIS RUN"/>
 			</otherwise>
 		</choice>
-	</sub-flow>
+	</flow>
 </mule>

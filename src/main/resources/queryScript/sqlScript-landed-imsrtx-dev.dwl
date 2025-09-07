@@ -1,16 +1,7 @@
 %dw 2.0
 output text/plain
 --- 
-"WITH 
-
-DRDL01_IBPRP4 AS (
-	-- Step 1: Retrieve DRDL01 values for IBPRP4 from UDC 41/P4
-    SELECT TRIM(Y1.DRDL01) AS DRDLO1, TRIM(Y1.DRKY) AS DRKY
-    FROM TESTCTL.F0005 Y1
-    WHERE TRIM(Y1.DRSY) = '41' AND TRIM(Y1.DRRT) = 'P4' 
-    --(AND TRIM(Y1.DRUPMJ) >= $(vars.previousProductsJobRun.date) AND TRIM(Y1.DRUPMT) >= $(vars.previousProductsJobRun.time))
-),
-
+"WITH
 
 IBLTLV_IBLITM AS (
 	-- Step 2: Get IBLITM and IBLTLV from F4102 based on criteria

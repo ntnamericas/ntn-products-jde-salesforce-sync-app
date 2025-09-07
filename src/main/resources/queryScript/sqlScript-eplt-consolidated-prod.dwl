@@ -56,7 +56,7 @@ LEFT JOIN IMDRAW_IMSRTX_IBLTLV T4 ON
 
 --WHERE T2.IMLITM = '6002LLU/5C[TB00]' and trim(T1.IBMCU) = '1801' 
 WHERE ((TRIM(T2.IMUPMJ) >= $(vars.previousepltJobRun.date) AND TRIM(T2.IMTDAY) >= $(vars.previousepltJobRun.time)) 
-   OR (TRIM(T1.IBUPMJ) >= $(vars.previousepltJobRun.date) AND TRIM(T1.IBTDAY) >= $(vars.previousepltJobRun.time))) and trim(T1.IBMCU) = '1801'
+   OR (TRIM(T1.IBUPMJ) >= $(vars.previousepltJobRun.date) AND TRIM(T1.IBTDAY) >= $(vars.previousepltJobRun.time))) and TRIM(T1.IBMCU) = '1801'
 	
 
 GROUP BY T3.IBPRP1, T3.IBSRP4, T4.IMDRAW, T4.IMSRTX"

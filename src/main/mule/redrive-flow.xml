@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="b5f3006d-515f-428e-9acc-c4c3181d3164" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="redrive-flowFlow" doc:id="b08aeb24-166b-4ded-9109-204269922b28" >
+		<http:listener doc:name="Listener" doc:id="715fe8b2-619e-4140-8946-b82f5ff279d3" config-ref="HTTP_Listener_config" path="/products"/>
+		<ee:transform doc:name="Transform Message" doc:id="6b1e4e14-c0e5-4a44-9244-b72d8e1a0cb5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="ff15e6c8-a2f0-4b7b-9dcb-6e10564a1a6d" >
+			<when expression='#[upper(payload.interface) == "CIF"]'>
+				<ee:transform doc:name="jobRunTime" doc:id="da08cc23-8e33-4fca-a4a6-73d5b4683b96">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dwl/vars-cifjobRun.dwl" variableName="cifjobRun" />
+						<ee:set-variable variableName="previouscifJobRun" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "date": payload.date,
+  "time": payload.time
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="jobRun logger" doc:id="dcfd8aa7-c3ce-4d95-9da6-75eefc79c9d6" message="#[vars.cifjobRun]" category="${log.category}" />
+				<logger level="INFO" doc:name="Logger2" doc:id="99ee7150-d95e-4f83-9912-0d153eb8b20f" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails : " ++ vars.previouscifJobRun.^raw]' category="${log.category}" />
+				<logger level="INFO" doc:name="Logger" doc:id="bb12f95b-0345-47a6-924c-1c31a6252dd9" message='Calling "cif-min-max-subFlow"' category="${log.category}" />
+				<flow-ref doc:name="Flow Reference to cif-min-max-subFlow" doc:id="72d195bd-fe77-479d-92d4-ceb8be808c61" name="cif-min-max-subFlow"/>
+				<logger level="INFO" doc:name="Logger1" doc:id="59cddb1c-1cf9-4567-91d3-5d85025e5f6d" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.cifjobRun.^raw]' />
+				<os:store doc:name="Store current job run details" doc:id="a2f0540e-07b9-421b-966b-f89f5c24bd71" key="previouscifJobRun" objectStore="Object_store_Previous_cif_Job_Run" >
+					<os:value ><![CDATA[#[vars.cifjobRun]]]></os:value>
+				</os:store>
+				<ee:transform doc:name="end response" doc:id="fcaf897c-3213-42bf-8b67-3b2108c5e744" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"successfully created/updated in SF" ++ vars.previouscifJobRun.^raw]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[upper(payload.interface) == "EPLT"]'>
+				<ee:transform doc:name="jobRunTime" doc:id="2a56863b-93bd-46b2-ba58-dc8ec1e5834e">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dwl/vars-epltjobRun.dwl" variableName="epltjobRun" />
+						<ee:set-variable variableName="previousepltJobRun" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "date": payload.date,
+  "time": payload.time
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="jobRun logger" doc:id="4f498a4a-f6bd-4456-aea6-a74b49e9298c" message="#[vars.epltjobRun]" category="${log.category}" />
+				<logger level="INFO" doc:name="Logger2" doc:id="6d9d23f6-123d-4cd7-945b-153c618f963a" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails : " ++ vars.previousepltJobRun.^raw]' category="${log.category}" />
+				<logger level="INFO" doc:name="Logger" doc:id="46a9a6be-a963-4b66-aea9-06cba9cbd48e" message='#["Calling estimated-lead-time-min-max-subflow"]' category="${log.category}" />
+				<flow-ref doc:name="Flow Reference to estimated-lead-time-min-max-subflow" doc:id="a186febb-00a6-4dd8-aa19-0e346af5741c" name="estimated-lead-time-min-max-subflow"/>
+				<logger level="INFO" doc:name="Logger1" doc:id="305fcefd-1002-4615-bcf1-6309a42836b1" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.epltjobRun.^raw]' />
+				<os:store doc:name="Store current job run details" doc:id="9388849a-145a-43d1-be28-ef3d89fe54b7" key="previousepltJobRun" objectStore="Object_store_Previous_eplt_Job_Run">
+					<os:value><![CDATA[#[vars.epltjobRun]]]></os:value>
+				</os:store>
+				<ee:transform doc:name="end response" doc:id="b9522f09-bb77-47ff-a012-fcf7160911e0" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"successfully created/updated in SF" ++ vars.previousepltJobRun.^raw]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[upper(payload.interface) == "PRODUCTS"]'>
+				<ee:transform doc:name="jobRunTime" doc:id="31cc7b9a-fba9-4514-bc5a-2c797c95febe">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dwl/vars-productsJobRun.dwl" variableName="productsJobRun" />
+						<ee:set-variable variableName="previousProductsJobRun" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "date": payload.date,
+  "time": payload.time
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="jobRun logger" doc:id="05e5eaa8-5c25-4ed0-8d43-3c918f1535e1" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrentJobRunDetails : " ++ vars.productsJobRun.^raw]' category="${log.category}" />
+				<logger level="INFO" doc:name="Logger" doc:id="cda9d1ff-88c2-407c-a26e-801e0a690f71" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails : " ++ vars.previousProductsJobRun.^raw]' />
+				<logger level="INFO" doc:name="Logger1" doc:id="32718547-1e06-424d-9d86-2e56ea01527d" message='#["\n Calling products-sub-flow"]' category="${log.category}" />
+				<ee:transform doc:name="Transform Message" doc:id="875014c0-4995-42f7-9c5c-2490a9059379">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+readUrl("classpath://queryScript/sqlScript-products-consolidated-$(p('mule.env')).dwl","text/plain")]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="excelData"><![CDATA[%dw 2.0
+output application/json
+---
+readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true})]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="6dab869e-0c53-4841-91ce-c23ec50f8d7b" expression="#[payload]" />
+				<try doc:name="Try" doc:id="ad251782-a53f-4a60-8307-f8ff671882d4">
+					<db:select doc:name="Get Product Details" doc:id="0a3c8af9-365a-4dc2-b34e-d889366dc3de" config-ref="Oracle_JDE_Database_Config">
+						<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+						<db:sql><![CDATA[#[payload]]]></db:sql>
+					</db:select>
+				</try>
+				<flow-ref doc:name="Flow Reference to products-sub-flow" doc:id="91f64187-69a1-45af-88c4-f64c8cf054a0" name="products-sub-flow"/>
+				<logger level="INFO" doc:name="Logger2" doc:id="3a7a14ad-1061-4a51-8049-69c8f73bb494" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]' />
+				<os:store doc:name="Store current job run details" doc:id="85e18075-9a8a-4c02-8023-70bb2be378c8" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run" >
+					<os:value ><![CDATA[#[vars.productsJobRun]]]></os:value>
+				</os:store>
+				<ee:transform doc:name="end response" doc:id="11414690-d45d-4d47-a528-b87523d82d4e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"successfully created/updated in SF" ++ vars.previousProductsJobRun.^raw]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[upper(payload.interface) == "PRODUCTSCODE"]'>
+				<ee:transform doc:name="jobRunTime" doc:id="ea1bf5e7-6bba-4fb7-9368-a97ec67e325c">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable resource="dwl/vars-productsJobRun.dwl" variableName="productsJobRun" />
+						<ee:set-variable variableName="productscode" ><![CDATA[%dw 2.0
+output application/json
+---
+upper(payload.interface)]]></ee:set-variable>
+						<ee:set-variable variableName="prccode" ><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output text/plain
+---
+//attributes.headers.prccode
+//payload.prccode replace "," with "','"
+substringBefore((substringAfter(payload.prccode replace "," with "','" , "(")), ")")]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="jobRun logger" doc:id="b9901aad-2eac-4139-b97f-f43365686060" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrentJobRunDetails : " ++ vars.productsJobRun.^raw]' category="${log.category}" />
+				<logger level="INFO" doc:name="Logger" doc:id="30a0b678-0a77-472a-b128-3de6389aa11c" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;Productscode : " ++ vars.prccode.^raw]' />
+				<logger level="INFO" doc:name="Logger1" doc:id="8b67ad60-95bb-4e96-95bc-e427e1570177" message='#["\n Calling products-sub-flow"]' category="${log.category}" />
+				<ee:transform doc:name="Transform Message" doc:id="5f0ffe84-db6b-4ab4-8b93-8458f59cb16d">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+readUrl("classpath://queryScript/sqlScript-products-code-$(p('mule.env')).dwl","text/plain")]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="excelData"><![CDATA[%dw 2.0
+output application/json
+---
+readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true})]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="55b82724-571d-4cc4-9ecc-401f90f26fee" expression="#[payload]" />
+				<try doc:name="Try" doc:id="b215a0bb-08b8-4359-9a99-78763fb510a0">
+					<db:select doc:name="Get Product Details" doc:id="2e8afbf7-33f9-4051-afd8-9ac69caad60c" config-ref="Oracle_JDE_Database_Config">
+						<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+						<db:sql><![CDATA[#[payload]]]></db:sql>
+					</db:select>
+				</try>
+				<flow-ref doc:name="Flow Reference to products-sub-flow" doc:id="6342303d-5a63-4ac8-8e90-53ecdcd9cdc4" name="products-sub-flow"/>
+				<logger level="INFO" doc:name="Logger2" doc:id="27006090-b66f-4ad0-9512-653b7431b738" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]' />
+				<os:store doc:name="Store current job run details" doc:id="6a8e7169-058a-4f71-8078-c7651f6b6414" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run" >
+					<os:value ><![CDATA[#[vars.productsJobRun]]]></os:value>
+				</os:store>
+				<ee:transform doc:name="end response" doc:id="8bcddf95-ebee-44ea-8d47-9d0974cf38c5" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"successfully created/updated in SF" ++ vars.prccode as String]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="0ddbcd13-0904-494b-83bf-bd15fe6f3857" message='#[upper(payload.interface) ++ "interface does not exist"]'/>
+			</otherwise>
+		</choice>
+		<error-handler ref="global-error-handler" />
+	</flow>
+</mule>
