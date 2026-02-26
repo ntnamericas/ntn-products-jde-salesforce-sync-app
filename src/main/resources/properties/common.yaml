@@ -27,6 +27,9 @@ waitArgs: "10000"
 response.timeout: "15000"
 batch.size : "100"
 batch.maxFailedRecords: "-1"
+batch.maxAge: "1"
+batch.timeUnit: "DAYS"
+
 
 max:
   retries: "3"
@@ -83,7 +86,7 @@ smtp:
   to: "donotreply@ntnusa.com,ntnmule@prowesssoft.com"
  
 products:
-  initialState : "stopped"
+  initialState : "started"
 cif:
   initialState : "stopped"
 eplt:

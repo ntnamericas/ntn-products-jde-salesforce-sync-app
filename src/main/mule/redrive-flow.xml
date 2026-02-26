@@ -154,7 +154,7 @@ substringBefore((substringAfter(payload.prccode replace "," with "','" , "(")), 
 					</ee:variables>
 				</ee:transform>
 				<logger level="INFO" doc:name="jobRun logger" doc:id="b9901aad-2eac-4139-b97f-f43365686060" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrentJobRunDetails : " ++ vars.productsJobRun.^raw]' category="${log.category}" />
-				<logger level="INFO" doc:name="Logger" doc:id="30a0b678-0a77-472a-b128-3de6389aa11c" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;Productscode : " ++ vars.prccode.^raw]' />
+				<logger level="WARN" doc:name="Logger" doc:id="30a0b678-0a77-472a-b128-3de6389aa11c" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;Productscode : " ++ vars.prccode.^raw]' />
 				<logger level="INFO" doc:name="Logger1" doc:id="8b67ad60-95bb-4e96-95bc-e427e1570177" message='#["\n Calling products-sub-flow"]' category="${log.category}" />
 				<ee:transform doc:name="Transform Message" doc:id="5f0ffe84-db6b-4ab4-8b93-8458f59cb16d">
 					<ee:message>

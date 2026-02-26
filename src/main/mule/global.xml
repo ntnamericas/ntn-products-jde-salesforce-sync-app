@@ -49,7 +49,12 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 	<salesforce:sfdc-config name="Salesforce_Config"
 		doc:name="Salesforce Config"
 		doc:id="33ac0030-519e-4c37-b4a9-6120a30fdc04">
-		<salesforce:oauth-user-pass-connection consumerKey="${secure::sf.key}" consumerSecret="${secure::sf.secret}" username="${sf.user}" password="${secure::sf.password}" securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}" />
+		<salesforce:oauth-user-pass-connection consumerKey="${secure::sf.key}" consumerSecret="${secure::sf.secret}" username="${sf.user}" password="${secure::sf.password}" securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}" >
+			<reconnection failsDeployment="true" >
+				<reconnect-forever />
+			</reconnection>
+		</salesforce:oauth-user-pass-connection>
+		<expiration-policy maxIdleTime="1" timeUnit="HOURS" />
 	</salesforce:sfdc-config>
 	<os:config name="ObjectStore_Config"
 		doc:name="ObjectStore Config"

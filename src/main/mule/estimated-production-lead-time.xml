@@ -90,6 +90,9 @@ readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dw
 				<scatter-gather doc:name="Scatter-Gather" doc:id="19428e76-6b5d-4624-b32e-99b06b640b48" >
 					<route >
 						<batch:job jobName="elpt-base-part-batch-job" doc:id="822de1d2-9a46-47e0-8474-0e1adc89ab42" blockSize="${batch.size}">
+							<batch:history >
+								<batch:expiration maxAge="${batch.maxAge}" ageUnit="DAYS" />
+							</batch:history>
 							<batch:process-records >
 								<batch:step name="base-batch-step" doc:id="2d9cd116-d822-41c9-976b-52adc04bcb6a" acceptExpression='#[payload.drawExternalID != null  and payload.drawExternalID !="" and payload.drawExternalID != [] and payload.drawExternalID != [""]  ]'>
 									<ee:transform doc:name="store the externalId" doc:id="1d43370c-8027-4ac4-82e6-5659fefe32b6">
@@ -149,7 +152,7 @@ output application/json
 payload[0]]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
-										<logger level="INFO" doc:name="Logger" doc:id="d8dcc311-8324-433e-9bb6-044ddbbe1df2" message="Logging BEFOR for Estimated Lead Time for BASE PARTS"/>
+										<logger level="INFO" doc:name="Logger" doc:id="d8dcc311-8324-433e-9bb6-044ddbbe1df2" message="Logging BEFORE for Estimated Lead Time for BASE PARTS"/>
 										<try doc:name="Try" doc:id="b639f2f5-e5b0-4891-8f82-9ad46d04637e" >
 											<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
 											<error-handler ref="global-error-handler" />
@@ -166,6 +169,9 @@ payload[0]]]></ee:set-payload>
 					</route>
 					<route >
 						<batch:job jobName="eplt-indusry-part-batch-job" doc:id="3c02836a-380e-46f8-bf7c-80fe6eca610c" blockSize="${batch.size}">
+							<batch:history >
+								<batch:expiration maxAge="${batch.maxAge}" ageUnit="DAYS" />
+							</batch:history>
 							<batch:process-records >
 								<batch:step name="industry-batch-step" doc:id="2af4d222-0ae0-44a4-b733-5b510514fce4" acceptExpression='#[payload.srtxExternalID != null  and payload.srtxExternalID !="" and payload.srtxExternalID != [] and payload.srtxExternalID != [""] ]'>
 									<ee:transform doc:name="store the externalId" doc:id="4dfa9e41-38b2-48d3-85fa-4f434dfe1967">
