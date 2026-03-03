@@ -73,6 +73,7 @@ readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true
 			</db:select>
 			<error-handler ref="global-error-handler" />
 		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="7d49b9c0-3826-433e-a36a-09bae7bbd9dd" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" category="DB.STREAM.CONSUMPTION"/>
 		<flow-ref doc:name="jde-products-sub-flow"
 			doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
 		<logger level="INFO" doc:name="Logger" doc:id="a2e491f7-6a6f-425c-af45-a15f62f02f78" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]' category="${log.category}"/>
@@ -94,7 +95,7 @@ payload&#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
 		<logger level="INFO" doc:name="Logger" doc:id="f2c4f333-1835-4427-8f7b-3aa0e7952aae" message='#["\n Product Result Sets Received From JDE: " ++ sizeOf(payload)]' category="${log.category}"/>
-		<!-- [STUDIO:"DEBUG LOG"]<logger level="DEBUG" doc:name="DEBUG LOG" doc:id="ed4995a8-cfe7-4046-add4-45e10f988316" message="#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;payload&#93;"/> [STUDIO] -->
+		<logger level="DEBUG" doc:name="DEBUG LOG" doc:id="ed4995a8-cfe7-4046-add4-45e10f988316" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]"/>
 		<ee:transform doc:name="map metadata" doc:id="76a67c59-2012-4683-bdbc-d90a3d2877ca">
 				<ee:message>
 				</ee:message>

@@ -84,6 +84,8 @@ readUrl("classpath://queryScript/sqlScript-cif-consolidated-$(p('mule.env')).dwl
 		</db:select>
 			<error-handler ref="global-error-handler" />
 		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="cbcb3436-07e0-4465-9b1d-b6d7048723ec" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" category="DB.STREAM.CONSUMPTION"/>
+		<logger level="INFO" doc:name="Logger" doc:id="3a871edc-ecb9-47e7-b938-b23a1c6739d5" message='#["CIF Min Max Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
 		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
 			<ee:message>
 				<ee:set-payload resource="dwl/cif-min-max-subFlow.dwl" />

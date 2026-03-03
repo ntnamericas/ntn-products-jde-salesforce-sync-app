@@ -73,6 +73,7 @@ readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dw
 		</db:select>
 			<error-handler ref="global-error-handler" />
 		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="cd7810e0-dde1-4d18-b33a-09b8086c7c02" category="DB.STREAM.CONSUMPTION" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]"/>
 		<logger level="INFO" doc:name="Logger" doc:id="03707cad-e3d0-4bd0-95f6-231e0387add8" message='#["Estimated Lead Time Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
 		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
 			<ee:message>
