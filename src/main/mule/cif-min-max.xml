@@ -79,13 +79,14 @@ readUrl("classpath://queryScript/sqlScript-cif-consolidated-$(p('mule.env')).dwl
 		</ee:transform>
 		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="f9573423-e714-4234-87d4-838343785524" expression="#[payload]" />
 		<try doc:name="Try" doc:id="1bd57439-b667-4d42-b69e-fdff103647cd" >
-			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="Oracle_JDE_Database_Config">
-			<db:sql><![CDATA[#[payload]]]></db:sql>
+			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="CIFOracle_JDE_Database_Config" transactionalAction="NOT_SUPPORTED" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+			<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+				<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
 			<error-handler ref="global-error-handler" />
 		</try>
-		<logger level="INFO" doc:name="Logger" doc:id="cbcb3436-07e0-4465-9b1d-b6d7048723ec" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" category="DB.STREAM.CONSUMPTION"/>
-		<logger level="INFO" doc:name="Logger" doc:id="3a871edc-ecb9-47e7-b938-b23a1c6739d5" message='#["CIF Min Max Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="cbcb3436-07e0-4465-9b1d-b6d7048723ec" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.dbresult]" category="DBSTREAMCONSUMPTION"/>
+		<logger level="INFO" doc:name="Logger" doc:id="3a871edc-ecb9-47e7-b938-b23a1c6739d5" message='#["CIF Min Max Result Sets Received From JDE: " ++ sizeOf(vars.dbresult)]'/>
 		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
 			<ee:message>
 				<ee:set-payload resource="dwl/cif-min-max-subFlow.dwl" />
@@ -107,7 +108,7 @@ vars.initialResultSet map {
 			<when expression="#[payload !=[]]">
 				<scatter-gather doc:name="Scatter-Gather" doc:id="500e96d7-fba6-4213-897f-8e1d9d87e04b">
 					<route>
-						<batch:job jobName="cif-base-part-batch-job" doc:id="67ae987b-c883-4ea3-adb6-5f40c1c1c764" maxFailedRecords="-1" blockSize="${batch.size}">
+						<batch:job jobName="cif-base-part-batch-job" doc:id="67ae987b-c883-4ea3-adb6-5f40c1c1c764" maxFailedRecords="${batch.maxFailedRecords}" blockSize="${batch.size}">
 							<batch:history >
 								<batch:expiration maxAge="${batch.maxAge}" ageUnit="DAYS" />
 							</batch:history>
@@ -135,8 +136,9 @@ readUrl("classpath://queryScript/sqlScript-councs-imdraw-$(p('mule.env')).dwl","
 		</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="fd5a9466-9c09-468d-9e64-3979686606a8" expression="#[payload]" />
 									<try doc:name="Try" doc:id="7d3fa535-40e3-449d-9094-f11c7509caf2" >
-										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="Oracle_JDE_Database_Config">
-			<db:sql><![CDATA[#[payload]]]></db:sql>
+										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="CIFOracle_JDE_Database_Config" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+			<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+											<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
 										<error-handler ref="global-error-handler" />
 									</try>
@@ -147,8 +149,8 @@ output application/json
 ---
 [{
     External_ID__c : vars.drawExternalId.drawExternalID,
-    CIF_Max__c : ((payload.MAX_COUNCS_IMDRAW[0]) default "0"),
-    CIF_Min__c : ((payload.MIN_COUNCS_IMDRAW[0]) default "0")
+    CIF_Max__c : ((vars.dbresult.MAX_COUNCS_IMDRAW[0]) default "0"),
+    CIF_Min__c : ((vars.dbresult.MIN_COUNCS_IMDRAW[0]) default "0")
 }]]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
@@ -171,7 +173,9 @@ payload[0]]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
 										<try doc:name="Try" doc:id="0ca202a2-9601-4a5f-a36f-bcbe8733210c" >
-											<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
+											<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" >
+												<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+											</salesforce:upsert>
 											<error-handler ref="global-error-handler" />
 										</try>
 										<logger level="INFO" doc:name="Logger" doc:id="6de65943-5149-456a-9366-48b49e7ce126" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>
@@ -185,7 +189,7 @@ payload[0]]]></ee:set-payload>
 						</batch:job>
 					</route>
 					<route>
-						<batch:job jobName="cif-industry-part-batch-job" doc:id="80707201-a406-45c3-8944-9999ca5d1013" maxFailedRecords="-1" blockSize="${batch.size}">
+						<batch:job jobName="cif-industry-part-batch-job" doc:id="80707201-a406-45c3-8944-9999ca5d1013" maxFailedRecords="${batch.maxFailedRecords}" blockSize="${batch.size}">
 							<batch:history >
 								<batch:expiration maxAge="${batch.maxAge}" ageUnit="DAYS" />
 							</batch:history>
@@ -213,8 +217,9 @@ readUrl("classpath://queryScript/sqlScript-councs-imsrtx-$(p('mule.env')).dwl","
 		</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="5d09a307-7a10-4eea-8ceb-781362a2f861" expression="#[payload]" />
 									<try doc:name="Try" doc:id="a4307e93-7a96-4eea-8463-3177e3440c75" >
-										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="Oracle_JDE_Database_Config">
-			<db:sql><![CDATA[#[payload]]]></db:sql>
+										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="CIFOracle_JDE_Database_Config" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+			<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+											<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
 										<error-handler ref="global-error-handler" />
 									</try>
@@ -225,8 +230,8 @@ output application/json
 ---
 [{
     External_ID__c : vars.strxExternalId.srtxExternalID,
-    CIF_Max__c : ((payload.MAX_COUNCS_IMSRTX[0]) default "0"),
-    CIF_Min__c : ((payload.MIN_COUNCS_IMSRTX[0]) default "0")
+    CIF_Max__c : ((vars.dbresult.MAX_COUNCS_IMSRTX[0]) default "0"),
+    CIF_Min__c : ((vars.dbresult.MIN_COUNCS_IMSRTX[0]) default "0")
 }]]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
@@ -249,7 +254,9 @@ payload[0]]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
 										<try doc:name="Try" doc:id="f2af5366-2dd1-4a23-9bb3-f857f9224c3a" >
-											<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+											<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" >
+												<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+											</salesforce:upsert>
 											<error-handler ref="global-error-handler" />
 										</try>
 										<logger level="INFO" doc:name="Logger" doc:id="770ba8cf-b24f-4f47-af63-bcdba6ceec8d" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>

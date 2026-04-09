@@ -24,7 +24,7 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
 http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd">
-	<db:config name="Oracle_JDE_Database_Config"
+	<db:config name="Products_Oracle_JDE_Database_Config"
 		doc:name="Database Config"
 		doc:id="d86fca43-10bf-4265-b8f2-2e9b8812fff3">
 		<db:oracle-connection host="${db.host}"
@@ -33,6 +33,31 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 			<reconnection failsDeployment="true">
 				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 			</reconnection>
+			<db:pooling-profile maxPoolSize="${db.maxPoolSize}" minPoolSize="${db.minPoolSize}" maxWait="${db.maxWait}" />
+		</db:oracle-connection>
+	</db:config>
+	<db:config name="EPLTOracle_JDE_Database_Config"
+		doc:name="Database Config"
+		doc:id="fb95ce3f-75c2-4826-8721-b3eb0a0eddf5">
+		<db:oracle-connection host="${db.host}"
+			user="${secure::db.user}" password="${secure::db.password}"
+			serviceName="${db.svc}" port="${db.port}">
+			<reconnection failsDeployment="true">
+				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+			</reconnection>
+			<db:pooling-profile maxPoolSize="${db.maxPoolSize}" minPoolSize="${db.minPoolSize}" maxWait="${db.maxWait}" />
+		</db:oracle-connection>
+	</db:config>
+	<db:config name="CIFOracle_JDE_Database_Config"
+		doc:name="Database Config"
+		doc:id="e9cb8eba-45dc-4415-ac57-fb54419d2612">
+		<db:oracle-connection host="${db.host}"
+			user="${secure::db.user}" password="${secure::db.password}"
+			serviceName="${db.svc}" port="${db.port}">
+			<reconnection failsDeployment="true">
+				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+			</reconnection>
+			<db:pooling-profile maxPoolSize="${db.maxPoolSize}" minPoolSize="${db.minPoolSize}" maxWait="${db.maxWait}" />
 		</db:oracle-connection>
 	</db:config>
 	<os:object-store
@@ -51,7 +76,7 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 		doc:id="33ac0030-519e-4c37-b4a9-6120a30fdc04">
 		<salesforce:oauth-user-pass-connection consumerKey="${secure::sf.key}" consumerSecret="${secure::sf.secret}" username="${sf.user}" password="${secure::sf.password}" securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}" >
 			<reconnection failsDeployment="true" >
-				<reconnect-forever />
+				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 			</reconnection>
 		</salesforce:oauth-user-pass-connection>
 		<expiration-policy maxIdleTime="1" timeUnit="HOURS" />
@@ -130,6 +155,9 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 		<email:smtp-connection host="${smtp.host}"
 			port="${smtp.port}" user="${secure::smtp.user}"
 			password="${secure::smtp.password}">
+			<reconnection failsDeployment="true" >
+				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+			</reconnection>
 			<email:properties>
 				<email:property key="mail.smtp.starttls.enable"
 					value="true" />

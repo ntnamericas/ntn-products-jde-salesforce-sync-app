@@ -23,6 +23,7 @@ payload]]></ee:set-variable>
 		<try doc:name="Try" doc:id="55de1f86-980f-4e74-8801-0c003e5b8b0b">
 									<logger level="INFO" doc:name="Logger" doc:id="8eec9926-4ed0-4b34-b2b0-53b5de8c815e" message="#['\n Starting Products Create : '  ++ sizeOf(payload)]" />
 									<salesforce:create doc:name="Create" doc:id="355be057-dcf5-4184-b9eb-e218c34d80f3" config-ref="Salesforce_Config" type="${sf.object}" >
+				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 			</salesforce:create>
 			<ee:transform doc:name="Transform Message" doc:id="67a130b7-e9ab-4324-bce2-79d9df8173cb" >
 				<ee:message >
@@ -87,6 +88,7 @@ payload.items map ( {Product2Id: $.payload.id})
 		<async doc:name="Async" doc:id="53f1a78d-cba8-4da7-87ed-fe0c37a7ae99">
 									<try doc:name="Try" doc:id="ae2168c1-4bbf-48a9-94bd-5b559a4a35b6">
 										<http:request method="POST" doc:name="Request" doc:id="fbdf35ae-8e41-4720-ab86-1a788e39956e" config-ref="PricebooksAPI_Request_configuration" path="${pricebooks.uri}" responseTimeout="${http.responseTimeout}" requestStreamingMode="AUTO" sendCorrelationId="ALWAYS">
+					<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}"/>
 					<http:headers ><![CDATA[#[output application/java
 ---
 {

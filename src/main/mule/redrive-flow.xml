@@ -116,13 +116,13 @@ readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true
 				</ee:transform>
 				<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="6dab869e-0c53-4841-91ce-c23ec50f8d7b" expression="#[payload]" />
 				<try doc:name="Try" doc:id="ad251782-a53f-4a60-8307-f8ff671882d4">
-					<db:select doc:name="Get Product Details" doc:id="0a3c8af9-365a-4dc2-b34e-d889366dc3de" config-ref="Oracle_JDE_Database_Config">
+					<db:select doc:name="Get Product Details" doc:id="0a3c8af9-365a-4dc2-b34e-d889366dc3de" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
 						<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 						<db:sql><![CDATA[#[payload]]]></db:sql>
 					</db:select>
 				</try>
-				<logger level="INFO" doc:name="Logger" doc:id="f1570029-213d-46d4-aa73-f8e725f83ec4" category="DB.STREAM.CONSUMPTION" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]"/>
-				<logger level="INFO" doc:name="Logger" doc:id="4fb03494-ff33-4e0d-bc07-b0c087ca5d9c" category="DB.STREAM.CONSUMPTION" message='#["\n Retried Product Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
+				<logger level="INFO" doc:name="Logger" doc:id="f1570029-213d-46d4-aa73-f8e725f83ec4" category="DBSTREAMCONSUMPTION" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.metadata]"/>
+				<logger level="INFO" doc:name="Logger" doc:id="4fb03494-ff33-4e0d-bc07-b0c087ca5d9c" category="DBSTREAMCONSUMPTION" message='#["\n Retried Product Result Sets Received From JDE: " ++ sizeOf(vars.metadata)]'/>
 				<flow-ref doc:name="Flow Reference to products-sub-flow" doc:id="91f64187-69a1-45af-88c4-f64c8cf054a0" name="products-sub-flow"/>
 				<logger level="INFO" doc:name="Logger2" doc:id="3a7a14ad-1061-4a51-8049-69c8f73bb494" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]' />
 				<os:store doc:name="Store current job run details" doc:id="85e18075-9a8a-4c02-8023-70bb2be378c8" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run" >
@@ -174,13 +174,13 @@ readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true
 				</ee:transform>
 				<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="55b82724-571d-4cc4-9ecc-401f90f26fee" expression="#[payload]" />
 				<try doc:name="Try" doc:id="b215a0bb-08b8-4359-9a99-78763fb510a0">
-					<db:select doc:name="Get Product Details" doc:id="2e8afbf7-33f9-4051-afd8-9ac69caad60c" config-ref="Oracle_JDE_Database_Config">
+					<db:select doc:name="Get Product Details" doc:id="2e8afbf7-33f9-4051-afd8-9ac69caad60c" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
 						<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 						<db:sql><![CDATA[#[payload]]]></db:sql>
 					</db:select>
 				</try>
-				<logger level="INFO" doc:name="Logger" doc:id="113db886-be30-4ae5-9ab8-058c078de778" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" category="DB.STREAM.CONSUMPTION"/>
-				<logger level="INFO" doc:name="Logger" doc:id="813b7d2c-4a21-4129-a276-dba46252c217" message='#["\n Retried Product Result Sets Received From JDE: " ++ sizeOf(payload)]' category="DB.STREAM.CONSUMPTION"/>
+				<logger level="INFO" doc:name="Logger" doc:id="113db886-be30-4ae5-9ab8-058c078de778" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.metadata]" category="DBSTREAMCONSUMPTION"/>
+				<logger level="INFO" doc:name="Logger" doc:id="813b7d2c-4a21-4129-a276-dba46252c217" message='#["\n Retried Product Result Sets Received From JDE: " ++ sizeOf(vars.metadata)]' category="DBSTREAMCONSUMPTION"/>
 				<flow-ref doc:name="Flow Reference to products-sub-flow" doc:id="6342303d-5a63-4ac8-8e90-53ecdcd9cdc4" name="products-sub-flow"/>
 				<logger level="INFO" doc:name="Logger2" doc:id="27006090-b66f-4ad0-9512-653b7431b738" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]' />
 				<os:store doc:name="Store current job run details" doc:id="6a8e7169-058a-4f71-8078-c7651f6b6414" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run" >

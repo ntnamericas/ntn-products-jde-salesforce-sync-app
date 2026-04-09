@@ -29,7 +29,11 @@ batch.size : "100"
 batch.maxFailedRecords: "-1"
 batch.maxAge: "1"
 batch.timeUnit: "DAYS"
-
+eplt.batch.size: "100"
+db.queryTimeout: "30"
+db.minPoolSize: "4"
+db.maxPoolSize: "30"
+db.maxWait: "600"
 
 max:
   retries: "3"
@@ -86,9 +90,9 @@ smtp:
   to: "donotreply@ntnusa.com,ntnmule@prowesssoft.com"
  
 products:
-  initialState : "started"
+  initialState : "stopped"
 cif:
-  initialState : "stopped"
+  initialState : "started"
 eplt:
-  initialState : "stopped"
+  initialState : "started"
   

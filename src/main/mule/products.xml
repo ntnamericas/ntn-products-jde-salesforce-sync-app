@@ -33,7 +33,7 @@ http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/
 
 </ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="jobRun logger" doc:id="5984e226-a277-496d-8706-1396756d7fbd" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrentJobRunDetails : " ++ vars.productsJobRun.^raw]' category="${log.category}"/>
+		<logger level="INFO" doc:name="jobRun logger" doc:id="5984e226-a277-496d-8706-1396756d7fbd" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrentJobRunDetails : " ++ vars.productsJobRun.^raw]' category="${log.category}" />
 		<os:retrieve doc:name="retrievePreviousJobRun"
 			doc:id="35c3b04f-5293-4fbe-bc99-a0fdecbc6fbf" key="previousProductsJobRun"
 			target="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
@@ -67,13 +67,13 @@ readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true
 		</ee:transform>
 		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="e44b73d0-65fa-40ae-a706-8b3f4b39cfcd" expression="#[payload]" />
 		<try doc:name="Try" doc:id="c2d61c67-3f6b-47da-a536-083434d555c8">
-			<db:select doc:name="Get Product Details" doc:id="cfec3483-a133-48a7-b514-56dfc1cb1fd7" config-ref="Oracle_JDE_Database_Config">
+			<db:select doc:name="Get Product Details" doc:id="cfec3483-a133-48a7-b514-56dfc1cb1fd7" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
 				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 				<db:sql><![CDATA[#[payload]]]></db:sql>
 			</db:select>
 			<error-handler ref="global-error-handler" />
 		</try>
-		<logger level="INFO" doc:name="Logger" doc:id="7d49b9c0-3826-433e-a36a-09bae7bbd9dd" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" category="DB.STREAM.CONSUMPTION"/>
+		<logger level="INFO" doc:name="Logger" doc:id="7d49b9c0-3826-433e-a36a-09bae7bbd9dd" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.metadata]" category="DB.STREAM.CONSUMPTION"/>
 		<flow-ref doc:name="jde-products-sub-flow"
 			doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
 		<logger level="INFO" doc:name="Logger" doc:id="a2e491f7-6a6f-425c-af45-a15f62f02f78" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]' category="${log.category}"/>
@@ -94,8 +94,8 @@ output application/json
 payload&#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
-		<logger level="INFO" doc:name="Logger" doc:id="f2c4f333-1835-4427-8f7b-3aa0e7952aae" message='#["\n Product Result Sets Received From JDE: " ++ sizeOf(payload)]' category="${log.category}"/>
-		<logger level="DEBUG" doc:name="DEBUG LOG" doc:id="ed4995a8-cfe7-4046-add4-45e10f988316" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f2c4f333-1835-4427-8f7b-3aa0e7952aae" message='#["\n Product Result Sets Received From JDE: " ++ sizeOf(vars.metadata)]' category="${log.category}"/>
+		<logger level="DEBUG" doc:name="DEBUG LOG" doc:id="ed4995a8-cfe7-4046-add4-45e10f988316" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.metadata]"/>
 		<ee:transform doc:name="map metadata" doc:id="76a67c59-2012-4683-bdbc-d90a3d2877ca">
 				<ee:message>
 				</ee:message>
@@ -105,7 +105,7 @@ payload&#93;&#93;></ee:set-variable>
 			</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="f51db8f9-0dde-4b42-bcc1-21cc6c927142" message='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.metadata map ((item, index) -&gt; &#10;{   &#10;    ContextLogger: "This is the first logger after data is fetched from Products DB",&#10;    IMDRAW : item.IMDRAW  default  null,&#10;    IMSRTX: item.IMSRTX default  null,&#10;    IMLITM: item.IMLITM default  null,&#10;    IBLITM: item.IBLITM default  null,&#10;    drawExternalIDLanded : item.drawExternalIDLanded default  null,&#10;    srtxExternalIDLanded : item.srtxExternalIDLanded default  null&#10;} )]'/>
 		<choice doc:name="For for " doc:id="58d5085e-9515-42ba-98fd-cdeeb403ad3c" tracking:enable-default-events="true">
-			<when expression="#[payload !=[]]">
+			<when expression="#[vars.metadata !=[]]">
 				<logger level="INFO" doc:name="Logger" doc:id="98110b91-4323-42c8-95d0-c29712a9d1e9" message='#["\n Calling products-mapping-subflow "]' category="${log.category}"/>
 				<ee:transform doc:name="set-context" doc:id="bd3506b4-c276-46a2-9379-bed09415b21d">
 					<ee:message>
@@ -305,8 +305,8 @@ if(vars.exId == "drawExternalIDLanded")
 						<when expression='#[payload."External_ID__c" != null]'>
 							<try doc:name="Try" doc:id="bd34a49d-19f5-4516-9fa2-db97da294911">
 						<salesforce:query doc:name="Check Base External Id in Salesforce" doc:id="7bdad15c-8a8e-4d36-8312-11c4373a15c8" config-ref="Salesforce_Config" target="SFExtId">
-						<reconnect-forever />
-							<salesforce:salesforce-query><![CDATA[select Id from Product2 where External_ID__c = :externalId__c and source__c='NBCC']]></salesforce:salesforce-query>
+							<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+											<salesforce:salesforce-query><![CDATA[select Id from Product2 where External_ID__c = :externalId__c and source__c='NBCC']]></salesforce:salesforce-query>
 						<salesforce:parameters><![CDATA[#[output application/java
 ---
 {
@@ -383,7 +383,8 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 					</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="8768b61a-cef5-4d5a-928b-eac2757928c3" message="#[payload]" category="${log.category}"/>
 						<email:send doc:name="send-batch-error-emails" doc:id="720b2eb3-30c9-41bb-ac7d-2918f2d59fb5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" >
-							<email:body contentType="text/html" encoding="UTF-8" >
+							<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+									<email:body contentType="text/html" encoding="UTF-8" >
 								<email:content ><![CDATA[#[%dw 2.0
 	output application/xml
 	skipNullOn="everywhere"
@@ -507,7 +508,7 @@ output text/plain
 				</ee:transform>
 							<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="fefc2dd8-75e4-4f24-993f-3208b7bd3779" expression="#[payload]" />
 							<try doc:name="Try" doc:id="f79d49e5-89ac-4b27-a662-423aef7bed38">
-										<db:select doc:name="Select" doc:id="945f3429-4252-439e-a851-6b94ab1c74c3" config-ref="Oracle_JDE_Database_Config">
+										<db:select doc:name="Select" doc:id="945f3429-4252-439e-a851-6b94ab1c74c3" config-ref="Products_Oracle_JDE_Database_Config">
 			<reconnect-forever />
 										<db:sql><![CDATA[#[payload]]]></db:sql>
 
@@ -545,6 +546,7 @@ payload map read( $, 'application/json')
 										<logger level="INFO" doc:name="Logger" doc:id="a8c6ecba-4953-4a38-8e47-32822284c731" message="#[%dw 2.0&#10;output application/java&#10;---&#10;&quot;Starting Landed Cost Upsert for draw BASE Parts &quot; ++ write(payload, 'application/json')]" category="${log.category}"/>
 										<try doc:name="Try" doc:id="197debc9-df84-4200-b0d1-87cd96a1c276">
 													<salesforce:upsert doc:name="Upsert" doc:id="073d3b2d-9324-4a38-bf28-2091531982e7" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}">
+												<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 												</salesforce:upsert>
 													<logger level="INFO" doc:name="Logger" doc:id="917a4821-8aa5-4e0f-8b3e-cad4bc43f7af" message='#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	"MessageSender": "landed-min-max-base-part-upsert",&#10;	failedId: $.exception.message,&#10;	message: $.message,&#10;	Successful: $.successful	&#10;})]' category="${log.category}"/>
 													<error-handler ref="global-error-handler" />
@@ -587,7 +589,8 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 						<logger level="INFO" doc:name="Logger" doc:id="1c88cf02-5b3e-41ad-a024-ad3896aba703" message="#[' \n '] #[payload] " category="${log.category}"/>
 										<try doc:name="Try" doc:id="0f90758e-c55b-4b27-b761-4e4a9fab267e">
 											<email:send doc:name="Send" doc:id="22c119db-da3a-414c-89b2-ece7e66c974b" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Batch Process Error Handling in  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]">
-							<email:body contentType="text/html" encoding="UTF-8">
+							<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+												<email:body contentType="text/html" encoding="UTF-8">
 								<email:content><![CDATA[#[%dw 2.0
 output application/xml
 skipNullOn="everywhere"
@@ -704,7 +707,7 @@ output text/plain
 		</ee:transform>
 							<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="04f185a5-2197-4225-88b6-2a6375f09da7" expression="#[payload]" />
 							<try doc:name="Try" doc:id="0139f3e0-e4ad-419f-bc80-d263d99d7ebf">
-										<db:select doc:name="Select" doc:id="68bc6a69-ca3f-4ba3-9031-2b397f53f79a" config-ref="Oracle_JDE_Database_Config">
+										<db:select doc:name="Select" doc:id="68bc6a69-ca3f-4ba3-9031-2b397f53f79a" config-ref="Products_Oracle_JDE_Database_Config">
 										<reconnect />
 										<db:sql><![CDATA[#[payload]]]></db:sql>
 				</db:select>
@@ -746,6 +749,7 @@ output application/java
 										<logger level="INFO" doc:name="Logger" doc:id="8b79cefe-1bfe-444c-9cff-8bd87a8a8da7" message="#[%dw 2.0&#10;output application/java&#10;---&#10;&quot;Starting Landed Cost Upsert for SRTX industry &quot; ++ write(payload, 'application/json')]" category="${log.category}"/>
 										<try doc:name="Try" doc:id="f1c9a82d-cdc8-412c-94e9-2e4ce3cf3ef4">
 													<salesforce:upsert doc:name="Upsert" doc:id="68694f18-4a38-4322-acf7-dc7ba9ebf053" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}">
+												<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 										</salesforce:upsert>
 													<logger level="INFO" doc:name="Logger" doc:id="0dfe4e5e-54e2-4253-b061-7d6c35225b5a" message='#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	"MessageSender": "landed-min-max-base-industry-upsert",&#10;	failedId: $.exception.message,&#10;	message: $.message,&#10;	Successful: $.successful	&#10;})]' category="${log.category}"/>
 													<error-handler ref="global-error-handler" />
@@ -789,7 +793,8 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 						<logger level="INFO" doc:name="Logger" doc:id="a189153d-b0ed-4390-83f9-e801a9ce918f" message="#[' \n '] #[payload] " />
 										<try doc:name="Try" doc:id="e53316d2-20f7-444d-858c-480704c93528">
 											<email:send doc:name="Send" doc:id="f319f1c0-ffe5-4549-a42d-5126fd86f1c5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Batch Process Error Handling in  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]">
-							<email:body contentType="text/html" encoding="UTF-8">
+							<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+												<email:body contentType="text/html" encoding="UTF-8">
 								<email:content><![CDATA[#[%dw 2.0
 output application/xml
 skipNullOn="everywhere"
@@ -866,7 +871,7 @@ payload]]></ee:set-payload>
 		</ee:transform>
 		<try doc:name="Try" doc:id="418db536-d8f2-422b-a276-c34200161420" >
 			<salesforce-composite:execute-composite-request doc:name="Execute composite request" doc:id="b60ebc3e-a090-4479-8338-7e1f71b84dae" config-ref="Salesforce_Composite_Config">
-				<reconnect-forever />
+				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 			</salesforce-composite:execute-composite-request>
 			<error-handler ref="global-error-handler" />
 		</try>
@@ -924,6 +929,7 @@ payload]]></ee:set-variable>
 						<choice doc:name="Choice" doc:id="6eaaddb0-4048-46b9-8065-6f76caab43f5" >
 							<when expression='#[!(vars.status contains "Notification")]'>
 								<email:send doc:name="Send" doc:id="bd14a6df-31cf-4600-8fc6-f2abcbca5892" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" config-ref="NTN-SMTP-Details">
+									<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 									<email:body contentType="text/html" encoding="UTF-8">
 						<email:content><![CDATA[#[%dw 2.0
 	output application/xml
@@ -971,6 +977,7 @@ output application/json
 							</when>
 							<otherwise >
 								<email:send doc:name="Send" doc:id="3ca12ad5-f710-4e7f-ab82-bea3b07f94b3" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" config-ref="NTN-SMTP-Details">
+									<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 									<email:body contentType="text/html" encoding="UTF-8" >
 										<email:content ><![CDATA[#[%dw 2.0
 	output application/xml
