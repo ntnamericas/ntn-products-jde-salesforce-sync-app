@@ -79,7 +79,7 @@ readUrl("classpath://queryScript/sqlScript-cif-consolidated-$(p('mule.env')).dwl
 		</ee:transform>
 		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="f9573423-e714-4234-87d4-838343785524" expression="#[payload]" />
 		<try doc:name="Try" doc:id="1bd57439-b667-4d42-b69e-fdff103647cd" >
-			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="CIFOracle_JDE_Database_Config" transactionalAction="NOT_SUPPORTED" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="CIFOracle_JDE_Database_Config" transactionalAction="NOT_SUPPORTED" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.cif}">
 			<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 				<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
@@ -136,7 +136,7 @@ readUrl("classpath://queryScript/sqlScript-councs-imdraw-$(p('mule.env')).dwl","
 		</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="fd5a9466-9c09-468d-9e64-3979686606a8" expression="#[payload]" />
 									<try doc:name="Try" doc:id="7d3fa535-40e3-449d-9094-f11c7509caf2" >
-										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="CIFOracle_JDE_Database_Config" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="CIFOracle_JDE_Database_Config" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.cif}">
 			<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 											<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
@@ -217,7 +217,7 @@ readUrl("classpath://queryScript/sqlScript-councs-imsrtx-$(p('mule.env')).dwl","
 		</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="5d09a307-7a10-4eea-8ceb-781362a2f861" expression="#[payload]" />
 									<try doc:name="Try" doc:id="a4307e93-7a96-4eea-8463-3177e3440c75" >
-										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="CIFOracle_JDE_Database_Config" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="CIFOracle_JDE_Database_Config" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.cif}">
 			<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 											<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>

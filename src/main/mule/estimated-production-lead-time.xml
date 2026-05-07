@@ -68,7 +68,7 @@ readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dw
 		</ee:transform>
 		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="525c42fe-7d1d-46bf-a4ff-8c3b123a74ef" expression="#[payload]" />
 		<try doc:name="Try" doc:id="3c525c9b-2166-4054-9e0e-a6a81ee65749" >
-			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="EPLTOracle_JDE_Database_Config" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="EPLTOracle_JDE_Database_Config" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.eplt}">
 			<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 				<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
@@ -118,7 +118,7 @@ readUrl("classpath://queryScript/sqlScript-eplt-imdraw-$(p('mule.env')).dwl","te
 				</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="031fa04b-48e7-4d38-b2e6-01d1c4ecefef" expression="#[payload]" />
 									<try doc:name="Try" doc:id="21ffae84-491a-4456-b8f7-3ff0258a0cf5" >
-										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="EPLTOracle_JDE_Database_Config" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="EPLTOracle_JDE_Database_Config" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.eplt}">
 					<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 											<db:sql><![CDATA[#[payload]]]></db:sql>
 				</db:select>
@@ -175,7 +175,7 @@ payload[0]
 						</batch:job>
 					</route>
 					<route >
-						<batch:job jobName="eplt-indusry-part-batch-job" doc:id="3c02836a-380e-46f8-bf7c-80fe6eca610c" blockSize="${batch.size}" maxFailedRecords="${batch.maxFailedRecords}">
+						<batch:job jobName="eplt-indusry-part-batch-job" doc:id="3c02836a-380e-46f8-bf7c-80fe6eca610c" blockSize="${eplt.batch.size}" maxFailedRecords="${batch.maxFailedRecords}">
 							<batch:history >
 								<batch:expiration maxAge="${batch.maxAge}" ageUnit="DAYS" />
 							</batch:history>
@@ -184,7 +184,7 @@ payload[0]
 									<ee:transform doc:name="store the externalId" doc:id="4dfa9e41-38b2-48d3-85fa-4f434dfe1967">
 										<ee:message />
 										<ee:variables>
-											<ee:set-variable variableName="strxExternalId"><![CDATA[%dw 2.0
+											<ee:set-variable variableName="srtxExternalId"><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-variable>
@@ -202,7 +202,7 @@ readUrl("classpath://queryScript/sqlScript-eplt-imsrtx-$(p('mule.env')).dwl","te
 		</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="3f6a677a-1d35-4e14-b01c-beabac161a91" expression="#[payload]" />
 									<try doc:name="Try" doc:id="9c9ae99a-4612-45d6-870b-f48af1923528" >
-										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="EPLTOracle_JDE_Database_Config" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="EPLTOracle_JDE_Database_Config" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.eplt}">
 					<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}"/>
 											<db:sql><![CDATA[#[payload]]]></db:sql>
 				</db:select>
@@ -215,7 +215,7 @@ readUrl("classpath://queryScript/sqlScript-eplt-imsrtx-$(p('mule.env')).dwl","te
 output application/json
 ---
 [{
-    External_ID__c : vars.strxExternalId.srtxExternalID,
+    External_ID__c : vars.srtxExternalId.srtxExternalID,
     Estimated_Production_Lead_Time_Max__c : ((payload.MAX_IBLTLV_SRTX[0]) default "0") as String,
     Estimated_Production_Lead_Time_Min__c : ((payload.MIN_IBLTLV_SRTX[0]) default "0") as String
 }]]]></ee:set-payload>

@@ -67,7 +67,7 @@ readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true
 		</ee:transform>
 		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="e44b73d0-65fa-40ae-a706-8b3f4b39cfcd" expression="#[payload]" />
 		<try doc:name="Try" doc:id="c2d61c67-3f6b-47da-a536-083434d555c8">
-			<db:select doc:name="Get Product Details" doc:id="cfec3483-a133-48a7-b514-56dfc1cb1fd7" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+			<db:select doc:name="Get Product Details" doc:id="cfec3483-a133-48a7-b514-56dfc1cb1fd7" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.products}">
 				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 				<db:sql><![CDATA[#[payload]]]></db:sql>
 			</db:select>
@@ -147,7 +147,7 @@ output application/json
 ) distinctBy $."srtx") filter (!isEmpty($."srtx"))]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-				<flow-ref doc:name="Flow Reference" doc:id="cdcbea4f-c4e0-443d-8914-07b2040253be" name="landed-min-max-choice-subflow"/>
+				<flow-ref doc:name="landed-min-max-choice-subflow" doc:id="cdcbea4f-c4e0-443d-8914-07b2040253be" name="landed-min-max-choice-subflow"/>
 				<logger level="INFO" doc:name="END-Logger" doc:id="b92c7dbe-b6d0-44ed-a1da-e1d6631e4adf" message='#["\n Products API finished processing"]' category="${log.category}"/>
 			</when>
 			<otherwise >
@@ -508,9 +508,9 @@ output text/plain
 				</ee:transform>
 							<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="fefc2dd8-75e4-4f24-993f-3208b7bd3779" expression="#[payload]" />
 							<try doc:name="Try" doc:id="f79d49e5-89ac-4b27-a662-423aef7bed38">
-										<db:select doc:name="Select" doc:id="945f3429-4252-439e-a851-6b94ab1c74c3" config-ref="Products_Oracle_JDE_Database_Config">
-			<reconnect-forever />
-										<db:sql><![CDATA[#[payload]]]></db:sql>
+										<db:select doc:name="Select" doc:id="945f3429-4252-439e-a851-6b94ab1c74c3" config-ref="Products_Oracle_JDE_Database_Config" fetchSize="${db.fetchSize.products}">
+										<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+											<db:sql><![CDATA[#[payload]]]></db:sql>
 
 				</db:select>
 										<error-handler ref="global-error-handler" />
@@ -707,8 +707,8 @@ output text/plain
 		</ee:transform>
 							<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="04f185a5-2197-4225-88b6-2a6375f09da7" expression="#[payload]" />
 							<try doc:name="Try" doc:id="0139f3e0-e4ad-419f-bc80-d263d99d7ebf">
-										<db:select doc:name="Select" doc:id="68bc6a69-ca3f-4ba3-9031-2b397f53f79a" config-ref="Products_Oracle_JDE_Database_Config">
-										<reconnect />
+										<db:select doc:name="Select" doc:id="68bc6a69-ca3f-4ba3-9031-2b397f53f79a" config-ref="Products_Oracle_JDE_Database_Config" fetchSize="${db.fetchSize.products}">
+										<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}"/>
 										<db:sql><![CDATA[#[payload]]]></db:sql>
 				</db:select>
 										<error-handler ref="global-error-handler" />

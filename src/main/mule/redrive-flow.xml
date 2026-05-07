@@ -116,7 +116,7 @@ readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true
 				</ee:transform>
 				<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="6dab869e-0c53-4841-91ce-c23ec50f8d7b" expression="#[payload]" />
 				<try doc:name="Try" doc:id="ad251782-a53f-4a60-8307-f8ff671882d4">
-					<db:select doc:name="Get Product Details" doc:id="0a3c8af9-365a-4dc2-b34e-d889366dc3de" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+					<db:select doc:name="Get Product Details" doc:id="0a3c8af9-365a-4dc2-b34e-d889366dc3de" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.products}">
 						<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 						<db:sql><![CDATA[#[payload]]]></db:sql>
 					</db:select>
@@ -174,7 +174,7 @@ readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true
 				</ee:transform>
 				<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="55b82724-571d-4cc4-9ecc-401f90f26fee" expression="#[payload]" />
 				<try doc:name="Try" doc:id="b215a0bb-08b8-4359-9a99-78763fb510a0">
-					<db:select doc:name="Get Product Details" doc:id="2e8afbf7-33f9-4051-afd8-9ac69caad60c" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES">
+					<db:select doc:name="Get Product Details" doc:id="2e8afbf7-33f9-4051-afd8-9ac69caad60c" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.products}">
 						<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 						<db:sql><![CDATA[#[payload]]]></db:sql>
 					</db:select>

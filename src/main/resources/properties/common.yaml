@@ -25,15 +25,18 @@ log.category: "TRACKING"
 
 waitArgs: "10000"
 response.timeout: "15000"
-batch.size : "100"
+batch.size : "25"
 batch.maxFailedRecords: "-1"
 batch.maxAge: "1"
 batch.timeUnit: "DAYS"
-eplt.batch.size: "100"
+eplt.batch.size: "25"
 db.queryTimeout: "30"
 db.minPoolSize: "4"
 db.maxPoolSize: "30"
 db.maxWait: "600"
+db.fetchSize.products: "100"
+db.fetchSize.cif: "100"
+db.fetchSize.eplt: "100"
 
 max:
   retries: "3"
@@ -90,9 +93,9 @@ smtp:
   to: "donotreply@ntnusa.com,ntnmule@prowesssoft.com"
  
 products:
-  initialState : "stopped"
+  initialState : "started"
 cif:
-  initialState : "started"
+  initialState : "stopped"
 eplt:
-  initialState : "started"
+  initialState : "stopped"
   
