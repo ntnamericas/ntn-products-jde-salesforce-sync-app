@@ -2,6 +2,9 @@ db:
   password: "![ij6UP3XXjZM=]"
   user: "![c6/KkkNKJ/o=]"
   
+oauth.sf:
+  key: "![kOASSUWrLJAhMTeFMSyDBE3mC+fYgyCpGBWnxqkiHmDSq5kIldwbNTe3/wxMgz4fueJjRrKmYgMUMexW91edPcP8bcQEzqce8FHLEfUbgocuJ0RT6VxvKg==]"  
+  secret: "![o3sZHvLEhaabQhcsdPYrDQ6uoyJ+6O7f1yjD9xbNTaZ+2/XUaCKhc7jv/DdTQvQIkj8YFPu7OKyAoBNxT7Cm/aJj68i6IZrT]"  
 
 sf:
   token: "![ppfIFBHfXWcVm7lrcGcYyFczyeSRHX/u4wFSHoAvKyU=]"

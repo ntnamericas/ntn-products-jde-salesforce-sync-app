@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:email="http://www.mulesoft.org/schema/mule/email"
+<mule
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:outlook365="http://www.mulesoft.org/schema/mule/outlook365"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
 	xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite"
 	xmlns:file="http://www.mulesoft.org/schema/mule/file"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
@@ -12,8 +15,7 @@
 	xmlns:db="http://www.mulesoft.org/schema/mule/db"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd 
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
@@ -23,7 +25,9 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
-http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd">
+http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
+http://www.mulesoft.org/schema/mule/outlook365 http://www.mulesoft.org/schema/mule/outlook365/current/mule-outlook365.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
 	<db:config name="Products_Oracle_JDE_Database_Config"
 		doc:name="Database Config"
 		doc:id="d86fca43-10bf-4265-b8f2-2e9b8812fff3">
@@ -31,9 +35,12 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 			user="${secure::db.user}" password="${secure::db.password}"
 			serviceName="${db.svc}" port="${db.port}">
 			<reconnection failsDeployment="true">
-				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+				<reconnect frequency="${reconnect.frequency}"
+					count="${reconnect.attempts}" />
 			</reconnection>
-			<db:pooling-profile maxPoolSize="${db.maxPoolSize}" minPoolSize="${db.minPoolSize}" maxWait="${db.maxWait}" />
+			<db:pooling-profile
+				maxPoolSize="${db.maxPoolSize}" minPoolSize="${db.minPoolSize}"
+				maxWait="${db.maxWait}" />
 		</db:oracle-connection>
 	</db:config>
 	<db:config name="EPLTOracle_JDE_Database_Config"
@@ -43,9 +50,12 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 			user="${secure::db.user}" password="${secure::db.password}"
 			serviceName="${db.svc}" port="${db.port}">
 			<reconnection failsDeployment="true">
-				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+				<reconnect frequency="${reconnect.frequency}"
+					count="${reconnect.attempts}" />
 			</reconnection>
-			<db:pooling-profile maxPoolSize="${db.maxPoolSize}" minPoolSize="${db.minPoolSize}" maxWait="${db.maxWait}" />
+			<db:pooling-profile
+				maxPoolSize="${db.maxPoolSize}" minPoolSize="${db.minPoolSize}"
+				maxWait="${db.maxWait}" />
 		</db:oracle-connection>
 	</db:config>
 	<db:config name="CIFOracle_JDE_Database_Config"
@@ -55,30 +65,32 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 			user="${secure::db.user}" password="${secure::db.password}"
 			serviceName="${db.svc}" port="${db.port}">
 			<reconnection failsDeployment="true">
-				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+				<reconnect frequency="${reconnect.frequency}"
+					count="${reconnect.attempts}" />
 			</reconnection>
-			<db:pooling-profile maxPoolSize="${db.maxPoolSize}" minPoolSize="${db.minPoolSize}" maxWait="${db.maxWait}" />
+			<db:pooling-profile
+				maxPoolSize="${db.maxPoolSize}" minPoolSize="${db.minPoolSize}"
+				maxWait="${db.maxWait}" />
 		</db:oracle-connection>
 	</db:config>
 	<os:object-store
 		name="Object_store_Previous_eplt_Job_Run" doc:name="Object store"
 		doc:id="98455782-5b25-409a-8b70-ef3392be003a" entryTtl="${os.ttl}"
 		entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
-		config-ref="ObjectStore_Config" expirationInterval="${os.interval}"/>
+		config-ref="ObjectStore_Config" expirationInterval="${os.interval}" />
 	<os:object-store
 		name="Object_store_Previous_Products_Job_Run" doc:name="Object store"
 		doc:id="79335253-ffbe-49b5-97b6-3eea6df57e69" entryTtl="${os.ttl}"
 		entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
-		config-ref="ObjectStore_Config" expirationInterval="${os.interval}"/>
+		config-ref="ObjectStore_Config" expirationInterval="${os.interval}" />
 
 	<salesforce:sfdc-config name="Salesforce_Config"
 		doc:name="Salesforce Config"
 		doc:id="33ac0030-519e-4c37-b4a9-6120a30fdc04">
-		<salesforce:oauth-user-pass-connection consumerKey="${secure::sf.key}" consumerSecret="${secure::sf.secret}" username="${sf.user}" password="${secure::sf.password}" securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}" >
-			<reconnection failsDeployment="true" >
-				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
-			</reconnection>
-		</salesforce:oauth-user-pass-connection>
+		<salesforce:oauth-client-credentials-connection >
+			<salesforce:oauth-client-credentials clientId="${secure::oauth.sf.key}" clientSecret="${secure::oauth.sf.secret}" tokenUrl="${oauth.sf.URL}" scopes="${oauth.sf.scopes}" authServerTlsContext="TLS_Context" />
+			<salesforce:oauth-store-config objectStore="Object_store" />
+		</salesforce:oauth-client-credentials-connection>
 		<expiration-policy maxIdleTime="1" timeUnit="HOURS" />
 	</salesforce:sfdc-config>
 	<os:config name="ObjectStore_Config"
@@ -104,14 +116,13 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 		doc:name="Configuration properties"
 		doc:id="64d736cf-0ac8-4b81-8833-e5e8b66c2ece"
 		file="properties/common.yaml" />
-	<!-- <global-property doc:name="Global Property"
-		doc:id="2de92508-c928-40dd-9a64-ed30ef4a8b62" name="encrypt.key"
-		value="replaceme" /> -->
+	<!-- <global-property doc:name="Global Property" doc:id="2de92508-c928-40dd-9a64-ed30ef4a8b62" 
+		name="encrypt.key" value="replaceme" /> -->
 	<os:object-store
 		name="Object_store_Previous_cif_Job_Run" doc:name="Object store"
 		doc:id="f721686e-1d15-4a21-b491-93416e13b2ba" entryTtl="${os.ttl}"
 		entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
-		config-ref="ObjectStore_Config" expirationInterval="${os.interval}"/>
+		config-ref="ObjectStore_Config" expirationInterval="${os.interval}" />
 	<http:request-config
 		name="PricebooksAPI_Request_configuration"
 		doc:name="HTTP Request configuration"
@@ -127,36 +138,30 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 		<salesforce-composite:oauth-user-pass-connection
 			consumerKey="${secure::sf.key}" consumerSecret="${secure::sf.secret}"
 			username="${sf.user}" password="${secure::sf.password}"
-			securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}" responseTimeout="${sf.responseTimeout}">
-			<reconnection failsDeployment="true" >
-				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}"/>
+			securityToken="${secure::sf.token}" tokenEndpoint="${sf.URL}"
+			responseTimeout="${sf.responseTimeout}">
+			<reconnection failsDeployment="true">
+				<reconnect frequency="${reconnect.frequency}"
+					count="${reconnect.attempts}" />
 			</reconnection>
 		</salesforce-composite:oauth-user-pass-connection>
 	</salesforce-composite:composite-config>
-	<!-- <email:smtp-config name="Email_SMTP"
-		doc:name="Email SMTP" doc:id="59d1998f-e7db-476f-80c6-a88da0e96c58"
-		from="mulesoftsmtpuser@ntnusa.com">
-		<email:smtp-connection host="smtp.office365.com"
-			user="mulesoftsmtpuser@ntnusa.com" password="G#342148323062um"
-			port="587">
-			<reconnection failsDeployment="true">
-				<reconnect />
-			</reconnection>
-			<email:properties>
-				<email:property key="mail.smtp.starttls.enable"
-					value="true" />
-				<email:property key="mail.debug" value="true" />
-			</email:properties>
-		</email:smtp-connection>
-	</email:smtp-config> -->
+	<!-- <email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="59d1998f-e7db-476f-80c6-a88da0e96c58" 
+		from="mulesoftsmtpuser@ntnusa.com"> <email:smtp-connection host="smtp.office365.com" 
+		user="mulesoftsmtpuser@ntnusa.com" password="G#342148323062um" port="587"> 
+		<reconnection failsDeployment="true"> <reconnect /> </reconnection> <email:properties> 
+		<email:property key="mail.smtp.starttls.enable" value="true" /> <email:property 
+		key="mail.debug" value="true" /> </email:properties> </email:smtp-connection> 
+		</email:smtp-config> -->
 	<email:smtp-config name="NTN-SMTP-Details"
 		doc:name="Email SMTP" doc:id="65c45e71-0c73-48af-8ac6-95d8e35e2fcc"
 		from="${secure::smtp.user}">
 		<email:smtp-connection host="${smtp.host}"
 			port="${smtp.port}" user="${secure::smtp.user}"
 			password="${secure::smtp.password}">
-			<reconnection failsDeployment="true" >
-				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+			<reconnection failsDeployment="true">
+				<reconnect frequency="${reconnect.frequency}"
+					count="${reconnect.attempts}" />
 			</reconnection>
 			<email:properties>
 				<email:property key="mail.smtp.starttls.enable"
@@ -164,5 +169,43 @@ http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org
 			</email:properties>
 		</email:smtp-connection>
 	</email:smtp-config>
-	
+	<outlook365:outlook365-config
+		name="Outlook365_Outlook365_Config"
+		doc:name="Outlook365 Outlook365 Config"
+		doc:id="38e9fd9f-2aa9-4645-ba21-e522f9a48647">
+		<outlook365:oauth-client-credentials-connection
+			baseUrl="${outlook.BaseURL}">
+			<reconnection>
+				<reconnect frequency="${reconnect.frequency}"
+					count="${reconnect.attempts}" />
+			</reconnection>
+			<outlook365:oauth-client-credentials
+				clientId="${secure::outlook.client_id}"
+				clientSecret="${secure::outlook.client_secret}"
+				tokenUrl="${outlook.tokenURL}" scopes="${outlook.scopes}" />
+			<outlook365:oauth-store-config
+				objectStore="Object_store" />
+		</outlook365:oauth-client-credentials-connection>
+	</outlook365:outlook365-config>
+	<os:config name="ObjectStore_Config-outlook"
+		doc:name="ObjectStore Config"
+		doc:id="4763b4cb-0a12-4838-a7a6-c833a9355e51">
+		<os:connection>
+			<reconnection />
+		</os:connection>
+	</os:config>
+	<os:object-store name="Object_store"
+		doc:name="Object store" doc:id="36771c24-9b3c-46bc-9a63-2d33cf1ab191"
+		maxEntries="${objectstore.maxEntry}" entryTtl="${objectstore.ttl}"
+		expirationInterval="${objectstore.expInterval}"
+		config-ref="ObjectStore_Config-outlook" />
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config"
+		doc:id="eef890a7-42e3-4e08-b1a3-1f62c1b71dd7">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+	</http:listener-config>
+	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="02225322-5805-48e6-b9d3-d595ed91af46" >
+		<tls:trust-store insecure="true" />
+	</tls:context>
 </mule>

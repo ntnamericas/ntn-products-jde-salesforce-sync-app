@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing"
+<mule xmlns:outlook365="http://www.mulesoft.org/schema/mule/outlook365"
+	xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing"
 	xmlns:email="http://www.mulesoft.org/schema/mule/email"
-	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
-	xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
-	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
-	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -16,7 +16,8 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
-http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd
+http://www.mulesoft.org/schema/mule/outlook365 http://www.mulesoft.org/schema/mule/outlook365/current/mule-outlook365.xsd">
 	<flow name="prodcuts-schedule-flow"
 		doc:id="6c64299d-8db3-4c46-a5d2-1def002fce65" tracking:enable-default-events="true" initialState="${products.initialState}">
 		<scheduler doc:name="prodcuts-scheduler" doc:id="0c38b9fb-7af5-47a4-a2b7-866e400c5559" disallowConcurrentExecution="true">
@@ -29,17 +30,20 @@ http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/
 			<ee:message />
 			<ee:variables>
 				<ee:set-variable resource="dwl/vars-productsJobRun.dwl" variableName="productsJobRun" />
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/json
+---
+uuid()]]></ee:set-variable>
 			
 
 </ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="jobRun logger" doc:id="5984e226-a277-496d-8706-1396756d7fbd" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrentJobRunDetails : " ++ vars.productsJobRun.^raw]' category="${log.category}" />
-		<os:retrieve doc:name="retrievePreviousJobRun"
-			doc:id="35c3b04f-5293-4fbe-bc99-a0fdecbc6fbf" key="previousProductsJobRun"
-			target="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
+		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="7b26ee7f-be54-45e8-85d0-5c0d305e13b0" correlationId="#[vars.correlationId]">
+			<logger level="INFO" doc:name="jobRun logger" doc:id="5984e226-a277-496d-8706-1396756d7fbd" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;CurrentJobRunDetails : " ++ vars.productsJobRun.^raw]' category="${log.category}" />
+			<os:retrieve doc:name="retrievePreviousJobRun" doc:id="35c3b04f-5293-4fbe-bc99-a0fdecbc6fbf" key="previousProductsJobRun" target="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
 			<os:default-value><![CDATA[#[vars.productsJobRun]]]></os:default-value>
 		</os:retrieve>
-		<!-- [STUDIO:"static-time-set-for-code-debug"]<ee:transform doc:name="static-time-set-for-code-debug" doc:id="163f7f77-4b55-43b6-8468-a133fc0982ae" >
+			<!-- [STUDIO:"static-time-set-for-code-debug"]<ee:transform doc:name="static-time-set-for-code-debug" doc:id="163f7f77-4b55-43b6-8468-a133fc0982ae" >
 			<ee:message >
 			</ee:message>
 			<ee:variables >
@@ -49,9 +53,9 @@ http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/
 }&#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
-		<logger level="INFO" doc:name="Logger" doc:id="06bba3fc-e5b9-49a3-8368-11bdf8082eaa" message="#[%dw 2.0&#10;output application/java&#10;---&#10;&quot;&#10;LastjobRunDetails : &quot; ++ write(vars.previousProductsJobRun.^raw, 'application/json')]" category="${log.category}"/>
-		<logger level="INFO" doc:name="Logger" doc:id="730807af-856e-4f6a-9e87-1a050b20b8ee" message='#["\n Calling products-sub-flow"]' category="${log.category}"/>
-		<ee:transform doc:name="Transform Message" doc:id="79a98857-1b95-41e6-88c6-b370ffa2515c">
+			<logger level="INFO" doc:name="Logger" doc:id="06bba3fc-e5b9-49a3-8368-11bdf8082eaa" message="#[%dw 2.0&#10;output application/java&#10;---&#10;&quot;&#10;LastjobRunDetails : &quot; ++ write(vars.previousProductsJobRun.^raw, 'application/json')]" category="${log.category}" />
+			<logger level="INFO" doc:name="Logger" doc:id="730807af-856e-4f6a-9e87-1a050b20b8ee" message='#["\n Calling products-sub-flow"]' category="${log.category}" />
+			<ee:transform doc:name="Transform Message" doc:id="79a98857-1b95-41e6-88c6-b370ffa2515c">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output text/plain
@@ -65,22 +69,21 @@ output application/json
 readUrl("classpath://product-family-data.xlsx","application/xlsx", {header: true})]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="e44b73d0-65fa-40ae-a706-8b3f4b39cfcd" expression="#[payload]" />
-		<try doc:name="Try" doc:id="c2d61c67-3f6b-47da-a536-083434d555c8">
+			<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="e44b73d0-65fa-40ae-a706-8b3f4b39cfcd" expression="#[payload]" />
+			<try doc:name="Try" doc:id="c2d61c67-3f6b-47da-a536-083434d555c8">
 			<db:select doc:name="Get Product Details" doc:id="cfec3483-a133-48a7-b514-56dfc1cb1fd7" config-ref="Products_Oracle_JDE_Database_Config" target="metadata" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.products}">
 				<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 				<db:sql><![CDATA[#[payload]]]></db:sql>
 			</db:select>
 			<error-handler ref="global-error-handler" />
 		</try>
-		<logger level="INFO" doc:name="Logger" doc:id="7d49b9c0-3826-433e-a36a-09bae7bbd9dd" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.metadata]" category="DB.STREAM.CONSUMPTION"/>
-		<flow-ref doc:name="jde-products-sub-flow"
-			doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
-		<logger level="INFO" doc:name="Logger" doc:id="a2e491f7-6a6f-425c-af45-a15f62f02f78" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]' category="${log.category}"/>
-		<os:store doc:name="Store current job run details"
-			doc:id="94b3f559-1d39-4249-955c-d4e8e8951844" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
+			<logger level="INFO" doc:name="Logger" doc:id="7d49b9c0-3826-433e-a36a-09bae7bbd9dd" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.metadata]" category="DB.STREAM.CONSUMPTION" />
+			<flow-ref doc:name="jde-products-sub-flow" doc:id="4fede292-ec95-4e79-be75-ded63ded2992" name="products-sub-flow" />
+			<logger level="INFO" doc:name="Logger" doc:id="a2e491f7-6a6f-425c-af45-a15f62f02f78" message='#[%dw 2.0&#10;output application/java&#10;---&#10;"&#10;LastjobRunDetails-stored-to-objectStore : " ++ vars.productsJobRun.^raw]' category="${log.category}" />
+			<os:store doc:name="Store current job run details" doc:id="94b3f559-1d39-4249-955c-d4e8e8951844" key="previousProductsJobRun" objectStore="Object_store_Previous_Products_Job_Run">
 			<os:value><![CDATA[#[vars.productsJobRun]]]></os:value>
 		</os:store>
+		</tracing:with-correlation-id>
 		<error-handler ref="global-error-handler" />
 	</flow>
 	<sub-flow name="products-sub-flow" doc:id="1decaf7b-f651-4c2d-bc2a-2c74fb85198c" >
@@ -94,7 +97,7 @@ output application/json
 payload&#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
-		<logger level="INFO" doc:name="Logger" doc:id="f2c4f333-1835-4427-8f7b-3aa0e7952aae" message='#["\n Product Result Sets Received From JDE: " ++ sizeOf(vars.metadata)]' category="${log.category}"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f2c4f333-1835-4427-8f7b-3aa0e7952aae" message='#["\n Product Result Sets Received From JDE: " ++ ((sizeOf(vars.metadata) default 0) as String)]' category="${log.category}"/>
 		<logger level="DEBUG" doc:name="DEBUG LOG" doc:id="ed4995a8-cfe7-4046-add4-45e10f988316" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.metadata]"/>
 		<ee:transform doc:name="map metadata" doc:id="76a67c59-2012-4683-bdbc-d90a3d2877ca">
 				<ee:message>
@@ -382,14 +385,14 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="8768b61a-cef5-4d5a-928b-eac2757928c3" message="#[payload]" category="${log.category}"/>
-						<email:send doc:name="send-batch-error-emails" doc:id="720b2eb3-30c9-41bb-ac7d-2918f2d59fb5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" >
+						<!-- [STUDIO:"send-batch-error-emails"]<email:send doc:name="send-batch-error-emails" doc:id="720b2eb3-30c9-41bb-ac7d-2918f2d59fb5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')&#93;" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;&#93;" >
 							<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 									<email:body contentType="text/html" encoding="UTF-8" >
 								<email:content ><![CDATA[#[%dw 2.0
 	output application/xml
 	skipNullOn="everywhere"
 
-	---
+	&#45;&#45;-
 	{
 		"html":{
 			"body":{
@@ -406,6 +409,10 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 					"div":{
 						"table" @(width:'40%', border:'1', cellspacing:'0'): {
 								"tr":{
+                                "th": "CorrelationId",
+                                "td": vars.correlationId
+                            },
+                            "tr":{
 									"th": "InterfaceName",
 									"td": p('app.name')
 								},
@@ -421,10 +428,39 @@ payload map read( $, 'application/json')]]></ee:set-payload>
 				}
 			}
 		}
-	}]]]></email:content>
+	}&#93;&#93;&#93;></email:content>
 							</email:body>
-							<email:attachments ><![CDATA[#[{"Products_Failures.csv": payload}]]]></email:attachments>
-						</email:send>
+							<email:attachments ><![CDATA[#[{"Products_Failures.csv": payload}&#93;&#93;&#93;></email:attachments>
+						</email:send> [STUDIO] -->
+								<outlook365:send-mail userId="${outlook.user}" doc:name="send-batch-error-emails" doc:id="9e101c82-9854-411a-94fe-c69589882fed" config-ref="Outlook365_Outlook365_Config">
+									<outlook365:message ><![CDATA[#[%dw 2.0
+output application/json
+import toBase64 from dw::core::Binaries
+---
+{
+    "message": {
+        "subject": "*** E-mail Notification: " ++ p('app.env') ++ " *** Products Update Report for : " ++ p('app.name'),
+        "body": {
+            "contentType": "HTML",
+            "content": "<html><body><div><div><h2>Status Update from Mulesoft</h2></div><div><p>Hi,</p><p>Greetings!!!</p><p>" ++ (vars.status default "") ++ "</p></div><div><table width='40%' border='1' cellspacing='0'><tr><th>CorrelationId</th><td>" ++ (vars.correlationId default "N/A") ++ "</td></tr><tr><th>InterfaceName</th><td>" ++ p('app.name') ++ "</td></tr>" ++ ((payload map (item) -> "<tr><th>Status</th><td>Failure</td></tr>") joinBy "") ++ "</table></div></div></body></html>"
+        },
+        "toRecipients": (p('smtp.to') splitBy ",") map (addr) -> {
+            "emailAddress": {
+                "address": trim(addr)
+            }
+        },
+        "saveToSentItems": true,
+        "attachments": [
+            {
+                "@odata.type": "#microsoft.graph.fileAttachment",
+                "name": "Products_Failures.csv",
+                "contentType": "text/csv",
+                "contentBytes": toBase64(write(payload, "application/csv", {"header": true}) as Binary {encoding: "UTF-8"})
+            }
+        ]
+    }
+}]]]></outlook365:message>
+								</outlook365:send-mail>
 					</batch:aggregator>
 					<set-payload value="#[Batch::getStepExceptions()]" doc:name="Set Payload" doc:id="1f708caa-d356-4dba-a536-7ffbb92c04a3" />
 					<foreach doc:name="For Each" doc:id="14f819e6-b683-4429-a11c-b3f6b20e4215" collection="#[payload.values()]">
@@ -515,23 +551,6 @@ output text/plain
 				</db:select>
 										<error-handler ref="global-error-handler" />
 									</try>
-									<ee:transform doc:name="Transform Message" doc:id="83875d5e-04c2-44b9-916b-bfbf665edf83">
-			<ee:message>
-											<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{       
-	"External_ID__c": vars.metadata.draw,
-    "Landed_Cost_Min__c": payload[0].LANDED_COST_MIN_DRAW default 0,
-    "Landed_Cost_Max__c": payload[0].LANDED_COST_MAX_DRAW default 0
-    
-}
- 
- ]]></ee:set-payload>
-			</ee:message>
-										<ee:variables>
-										</ee:variables>
-		</ee:transform>
 									<batch:aggregator doc:name="Batch Aggregator" doc:id="a806d24f-b8c6-4a00-9e54-4ce553f0fa5a" size="200">
 										<ee:transform doc:name="Transform Message" doc:id="2a577704-6be3-402e-b7f0-02780ee1822b">
 											<ee:message>
@@ -567,6 +586,41 @@ output application/json
 											</otherwise>
 										</choice> [STUDIO] -->
 									</batch:aggregator>
+									<choice doc:name="Guard landed cost payload - draw" doc:id="41d181ea-395d-406c-bca3-9665f1c7e1d1">
+    <when expression="#[payload != null and payload is Array and !isEmpty(payload) and payload[0] is Object]">
+        <ee:transform doc:name="Transform Message" doc:id="096ab61f-0629-4bc0-b07f-1dd0275cc754">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "External_ID__c": vars.metadata.draw,
+    "Landed_Cost_Min__c": payload[0].LANDED_COST_MIN_DRAW default 0,
+    "Landed_Cost_Max__c": payload[0].LANDED_COST_MAX_DRAW default 0
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+            </ee:variables>
+        </ee:transform>
+    </when>
+    <otherwise>
+        <ee:transform doc:name="Default landed cost - draw" doc:id="979815c9-12e9-4628-9c9a-773d05be16fd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "External_ID__c": vars.metadata.draw,
+    "Landed_Cost_Min__c": 0,
+    "Landed_Cost_Max__c": 0
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="WARN"
+            doc:name="Warn bad payload - draw"
+            message='#[%dw 2.0&#10;output application/java&#10;---&#10;"[base-part-batch-step] Unexpected DB payload type for draw=" ++ (vars.metadata.draw default "?") ++ " payloadType=" ++ (typeOf(payload) as String)]'/>
+    </otherwise>
+</choice>
 						</batch:step>
 								<batch:step name="Handle-Batch-Errors" doc:id="548dbd5b-1c69-4e10-bddd-2489b59bff08" acceptPolicy="ONLY_FAILURES">
 					<ee:transform doc:name="Transform Message" doc:id="bc8a16ee-cc98-4596-86bf-d3417b7e9540">
@@ -582,20 +636,28 @@ payload]]></ee:set-payload>
 							<ee:message>
 								<ee:set-payload><![CDATA[%dw 2.0
 output application/json
+var a = payload map read( $, 'application/json')
+var noEmail = (flatten(a) filter ((item, index) -> upper(item.Description) ~= "AN ATTEMPT BY A CLIENT TO CHECKOUT A CONNECTION HAS TIMED OUT.")) distinctBy $
+var email = (flatten(a) filter ((item, index) -> upper(item.Description) != "AN ATTEMPT BY A CLIENT TO CHECKOUT A CONNECTION HAS TIMED OUT.")) distinctBy $
 ---
-payload map read( $, 'application/json')]]></ee:set-payload>
+{
+    "noEmail": noEmail,
+    "email": email
+}]]></ee:set-payload>
 							</ee:message>
 						</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="1c88cf02-5b3e-41ad-a024-ad3896aba703" message="#[' \n '] #[payload] " category="${log.category}"/>
-										<try doc:name="Try" doc:id="0f90758e-c55b-4b27-b761-4e4a9fab267e">
-											<email:send doc:name="Send" doc:id="22c119db-da3a-414c-89b2-ece7e66c974b" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Batch Process Error Handling in  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]">
+										<choice doc:name="Choice" doc:id="eccc69a4-f29a-4138-9b47-afce20631a70">
+													<when expression='#[!isEmpty(payload."email")]'>
+												<try doc:name="Try" doc:id="0f90758e-c55b-4b27-b761-4e4a9fab267e">
+											<!-- [STUDIO:"Send"]<email:send doc:name="Send" doc:id="22c119db-da3a-414c-89b2-ece7e66c974b" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Batch Process Error Handling in  &quot; ++ p('app.name')&#93;" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;&#93;">
 							<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 												<email:body contentType="text/html" encoding="UTF-8">
 								<email:content><![CDATA[#[%dw 2.0
 output application/xml
 skipNullOn="everywhere"
 
----
+&#45;&#45;-
 {
     "html":{
         "body":{
@@ -612,6 +674,10 @@ skipNullOn="everywhere"
                 "div":{
                     "table" @(width:'40%', border:'1', cellspacing:'0'): {
 							"tr":{
+                                "th": "CorrelationId",
+                                "td": vars.correlationId
+                            },
+                            "tr":{
                                 "th": "InterfaceName",
                                 "td": p('app.name')
                             },
@@ -621,7 +687,7 @@ skipNullOn="everywhere"
                             },
                           "tr":{
                                 "th": "Failed Payload",
-                                "td": payload
+                                "td": payload."email"
                             }                        
 				
                         }
@@ -629,11 +695,66 @@ skipNullOn="everywhere"
             }
         }
     }
-}]]]></email:content>
+}&#93;&#93;&#93;></email:content>
 							</email:body>
-						</email:send>
-											<error-handler ref="global-error-handler" />
+						</email:send> [STUDIO] -->
+											<outlook365:send-mail userId="${outlook.user}" doc:name="Send mail" doc:id="37ffd762-b480-41ef-8195-6bf4485b047a" config-ref="Outlook365_Outlook365_Config">
+														<outlook365:message ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+    "message": {
+        "subject": "*** E-mail Notification: " ++ p('app.env') ++ " *** Batch Process Error Handling in " ++ p('app.name'),
+        "body": {
+            "contentType": "HTML",
+            "content": "<html>
+                <body>
+                    <div class='total'>
+                        <div class='header'>
+                            <h2>Alert from Mulesoft</h2>
+                        </div>
+                        <div class='content'>
+                            <p>Hi,</p>
+                            <p>Greetings!!!</p>
+                            <p>Error while processing, please take corrective action.</p>
+                        </div>
+                        <div>
+                            <table width='40%' border='1' cellspacing='0'>
+                                <tr>
+                                    <th>CorrelationId</th>
+                                    <td>" ++ (vars.correlationId default "N/A") ++ "</td>
+                                </tr>
+                                <tr>
+                                    <th>InterfaceName</th>
+                                    <td>" ++ p('app.name') ++ "</td>
+                                </tr>
+                                <tr>
+                                    <th>Error Type</th>
+                                    <td>Batch Processing Error while updating Landed MIN and MAX BASE Parts</td>
+                                </tr>
+                                <tr>
+                                    <th>Failed Payload</th>
+                                    <td>" ++ (write(payload.email, "application/json") default "N/A") ++ "</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </body>
+            </html>"
+        },
+        "toRecipients": (p('smtp.to') splitBy ",") map (addr) -> {
+            "emailAddress": {
+                "address": trim(addr)
+            }
+        },
+       // "saveToSentItems": true
+    }
+}]]]></outlook365:message>
+													</outlook365:send-mail>
+													<error-handler ref="global-error-handler" />
 										</try>
+													</when>
+												</choice>
 										<logger level="INFO" doc:name="Logger" doc:id="5a7a22c9-0741-4559-9602-31e6b2d283e5" message="#['\n'] Landed min-max BASE Part Error Handling Completed." category="${log.category}"/>
 					</batch:aggregator>
 				</batch:step>
@@ -713,21 +834,39 @@ output text/plain
 				</db:select>
 										<error-handler ref="global-error-handler" />
 									</try>
-									<ee:transform doc:name="Transform Message" doc:id="e93cfba9-0eae-4ae6-b1c9-e76d2a4db651">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+									<choice doc:name="Guard landed cost payload - srtx" doc:id="6d77614f-fbff-477e-aab9-687190d9d9c2">
+    <when expression="#[payload != null and payload is Array and !isEmpty(payload) and payload[0] is Object]">
+        <ee:transform doc:name="Transform Message" doc:id="d9850f03-76d1-468a-9ca8-5ccea0be0e17">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-{       
-	"External_ID__c": vars.metadata.srtx,
+{
+    "External_ID__c": vars.metadata.srtx,
     "Landed_Cost_Min__c": payload[0].LANDED_COST_MIN_DRAW default 0,
     "Landed_Cost_Max__c": payload[0].LANDED_COST_MAX_DRAW default 0
-    
-}
- 
- ]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </when>
+    <otherwise>
+        <ee:transform doc:name="Default landed cost - srtx" doc:id="8c07142d-c1ea-46a9-abcc-526329f24dcc">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "External_ID__c": vars.metadata.srtx,
+    "Landed_Cost_Min__c": 0,
+    "Landed_Cost_Max__c": 0
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="WARN"
+            doc:name="Warn bad payload - srtx"
+            message='#[%dw 2.0&#10;output application/java&#10;---&#10;"[industry-part-batch-step] Unexpected DB payload type for srtx=" ++ (vars.metadata.srtx default "?") ++ " payloadType=" ++ (typeOf(payload) as String)]'/>
+    </otherwise>
+</choice>
 									<batch:aggregator doc:name="Batch Aggregator" doc:id="b815077b-7b4c-4e8a-82bd-e97544331cd5" size="200">
 										<ee:transform doc:name="Transform Message" doc:id="a291e3c3-fa43-49b1-ad67-ca2572bcf20b">
 											<ee:message>
@@ -786,20 +925,28 @@ payload]]></ee:set-payload>
 							<ee:message>
 								<ee:set-payload><![CDATA[%dw 2.0
 output application/json
+var a = payload map read( $, 'application/json')
+var noEmail = (flatten(a) filter ((item, index) -> upper(item.Description) ~= "AN ATTEMPT BY A CLIENT TO CHECKOUT A CONNECTION HAS TIMED OUT.")) distinctBy $
+var email = (flatten(a) filter ((item, index) -> upper(item.Description) != "AN ATTEMPT BY A CLIENT TO CHECKOUT A CONNECTION HAS TIMED OUT.")) distinctBy $
 ---
-payload map read( $, 'application/json')]]></ee:set-payload>
+{
+    "noEmail": noEmail,
+    "email": email
+}]]></ee:set-payload>
 							</ee:message>
 						</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="a189153d-b0ed-4390-83f9-e801a9ce918f" message="#[' \n '] #[payload] " />
-										<try doc:name="Try" doc:id="e53316d2-20f7-444d-858c-480704c93528">
-											<email:send doc:name="Send" doc:id="f319f1c0-ffe5-4549-a42d-5126fd86f1c5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Batch Process Error Handling in  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]">
+										<choice doc:name="Choice" doc:id="80bbc52e-4322-4992-a83a-5f3a9cac9dd2" >
+											<when expression='#[!isEmpty(payload."email")]'>
+												<try doc:name="Try" doc:id="e53316d2-20f7-444d-858c-480704c93528">
+											<!-- [STUDIO:"Send"]<email:send doc:name="Send" doc:id="f319f1c0-ffe5-4549-a42d-5126fd86f1c5" config-ref="NTN-SMTP-Details" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Batch Process Error Handling in  &quot; ++ p('app.name')&#93;" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;&#93;">
 							<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 												<email:body contentType="text/html" encoding="UTF-8">
 								<email:content><![CDATA[#[%dw 2.0
 output application/xml
 skipNullOn="everywhere"
 
----
+&#45;&#45;-
 {
     "html":{
         "body":{
@@ -816,6 +963,10 @@ skipNullOn="everywhere"
                 "div":{
                     "table" @(width:'40%', border:'1', cellspacing:'0'): {
 							"tr":{
+                                "th": "CorrelationId",
+                                "td": vars.correlationId
+                            },
+                            "tr":{
                                 "th": "InterfaceName",
                                 "td": p('app.name')
                             },
@@ -825,7 +976,7 @@ skipNullOn="everywhere"
                             },
                           "tr":{
                                 "th": "Failed Payload",
-                                "td": payload
+                                "td": payload."email"
                             }                        
 				
                         }
@@ -833,11 +984,66 @@ skipNullOn="everywhere"
             }
         }
     }
-}]]]></email:content>
+}&#93;&#93;&#93;></email:content>
 							</email:body>
-						</email:send>
-											<error-handler ref="global-error-handler" />
+						</email:send> [STUDIO] -->
+											<outlook365:send-mail doc:name="Send mail" doc:id="d18e38cb-3b74-47fd-b36b-d20e78d48faa" config-ref="Outlook365_Outlook365_Config" userId="${outlook.user}">
+														<outlook365:message ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+    "message": {
+        "subject": "*** E-mail Notification: " ++ p('app.env') ++ " *** Batch Process Error Handling in " ++ p('app.name'),
+        "body": {
+            "contentType": "HTML",
+            "content": "<html>
+                <body>
+                    <div class='total'>
+                        <div class='header'>
+                            <h2>Alert from Mulesoft</h2>
+                        </div>
+                        <div class='content'>
+                            <p>Hi,</p>
+                            <p>Greetings!!!</p>
+                            <p>Error while processing, please take corrective action.</p>
+                        </div>
+                        <div>
+                            <table width='40%' border='1' cellspacing='0'>
+                                <tr>
+                                    <th>CorrelationId</th>
+                                    <td>" ++ (vars.correlationId default "N/A") ++ "</td>
+                                </tr>
+                                <tr>
+                                    <th>InterfaceName</th>
+                                    <td>" ++ p('app.name') ++ "</td>
+                                </tr>
+                                <tr>
+                                    <th>Error Type</th>
+                                    <td>Batch Processing Error while updating Landed MIN and MAX INDUSTRY Parts</td>
+                                </tr>
+                                <tr>
+                                    <th>Failed Payload</th>
+                                    <td>" ++ (write(payload.email default [], "application/json")) ++ "</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </body>
+            </html>"
+        },
+        "toRecipients": (p('smtp.to') splitBy ",") map (addr) -> {
+            "emailAddress": {
+                "address": trim(addr)
+            }
+        },
+    //    "saveToSentItems": true
+    }
+}]]]></outlook365:message>
+													</outlook365:send-mail>
+													<error-handler ref="global-error-handler" />
 										</try>
+											</when>
+										</choice>
 										<logger level="INFO" doc:name="Logger" doc:id="5cc0fdaf-a5b9-4561-aa6a-3b7a4a0e9c60" message="#['\n'] Landed min-max INDUSTRY Part Error Handling Completed." category="${log.category}"/>
 					</batch:aggregator>
 				</batch:step>
@@ -926,16 +1132,16 @@ payload]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
 						<logger level="INFO" doc:name="Logger" doc:id="ccf72fcf-0c91-4ab6-b04f-f8e1e004414a" message='#["\n Logging Before Sending Error Update Email"]' category="${log.category}"/>
-						<choice doc:name="Choice" doc:id="6eaaddb0-4048-46b9-8065-6f76caab43f5" >
-							<when expression='#[!(vars.status contains "Notification")]'>
-								<email:send doc:name="Send" doc:id="bd14a6df-31cf-4600-8fc6-f2abcbca5892" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" config-ref="NTN-SMTP-Details">
+						<!-- [STUDIO:"Choice"]<choice doc:name="Choice" doc:id="6eaaddb0-4048-46b9-8065-6f76caab43f5" >
+							<when expression='#[!(vars.status contains "Notification")&#93;'>
+								<email:send doc:name="Send" doc:id="bd14a6df-31cf-4600-8fc6-f2abcbca5892" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;&#93;" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')&#93;" config-ref="NTN-SMTP-Details">
 									<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 									<email:body contentType="text/html" encoding="UTF-8">
 						<email:content><![CDATA[#[%dw 2.0
 	output application/xml
 	skipNullOn="everywhere"
 
-	---
+	&#45;&#45;-
 	{
 		"html":{
 			"body":{
@@ -952,6 +1158,10 @@ payload]]></ee:set-variable>
 					"div":{
 						"table" @(width:'40%', border:'1', cellspacing:'0'): {
 								"tr":{
+                                "th": "CorrelationId",
+                                "td": vars.correlationId
+                            },
+                            "tr":{
 									"th": "InterfaceName",
 									"td": p('app.name')
 								},
@@ -967,23 +1177,80 @@ payload]]></ee:set-variable>
 				}
 			}
 		}
-	}]]]></email:content>
+	}&#93;&#93;&#93;></email:content>
 											</email:body>
 							<email:attachments><![CDATA[#[%dw 2.0
 output application/json
----
-{"Products_Failures.json": vars.emailPayload}]]]></email:attachments>
+&#45;&#45;-
+{"Products_Failures.json": vars.emailPayload}&#93;&#93;&#93;></email:attachments>
 								</email:send>
+								<outlook365:send-mail doc:name="Products Update Report Send mail" doc:id="e7b730f8-b4dc-4a4c-8d5c-bf51a8416e0a" config-ref="Outlook365_Outlook365_Config" userId="p('outlook.user')">
+									<outlook365:message ><![CDATA[#[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+    "subject": "*** E-mail Notification: " ++ p('app.env') ++ " *** Products Update Report for : " ++ p('app.name'),
+    "body": {
+        "contentType": "HTML",
+        "content": "<html>
+            <body>
+                <div class='total'>
+                    <div class='header'>
+                        <h2>Status Update from Mulesoft</h2>
+                    </div>
+                    <div class='content'>
+                        <p>Hi,</p>
+                        <p>Greetings!!!</p>
+                        <p>" ++ (vars.status default "") ++ "</p>
+                    </div>
+                    <div>
+                        <table width='40%' border='1' cellspacing='0'>
+                            <tr>
+                                <th>CorrelationId</th>
+                                <td>" ++ (vars.correlationId default "N/A") ++ "</td>
+                            </tr>
+                            <tr>
+                                <th>InterfaceName</th>
+                                <td>" ++ p('app.name') ++ "</td>
+                            </tr>
+                            " ++ ((payload map (item) ->
+                                "<tr>
+                                    <th>Status</th>
+                                    <td>" ++ (if(item.Successful == true) "Successful: true" else "Please Review the Attachment to check for failed records") ++ "</td>
+                                </tr>"
+                            ) joinBy "") ++ "
+                        </table>
+                    </div>
+                </div>
+            </body>
+        </html>"
+    },
+    "toRecipients": (p('smtp.to') splitBy ",") map (addr) -> {
+        "emailAddress": {
+            "address": trim(addr)
+        }
+    },
+    "saveToSentItems": true,
+    "attachments": [
+        {
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            "name": "Products_Failures.json",
+            "contentType": "application/json",
+            "contentBytes": (write(vars.emailPayload default [&#93;, "application/json")) toBase64
+        }
+    &#93;
+}&#93;&#93;&#93;></outlook365:message>
+								</outlook365:send-mail>
 							</when>
 							<otherwise >
-								<email:send doc:name="Send" doc:id="3ca12ad5-f710-4e7f-ab82-bea3b07f94b3" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')]" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" config-ref="NTN-SMTP-Details">
+								<email:send doc:name="Send" doc:id="3ca12ad5-f710-4e7f-ab82-bea3b07f94b3" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot;  *** Products Update Report for :  &quot; ++ p('app.name')&#93;" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;&#93;" config-ref="NTN-SMTP-Details">
 									<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
 									<email:body contentType="text/html" encoding="UTF-8" >
 										<email:content ><![CDATA[#[%dw 2.0
 	output application/xml
 	skipNullOn="everywhere"
 
-	---
+	&#45;&#45;-
 	{
 		"html":{
 			"body":{
@@ -1000,6 +1267,10 @@ output application/json
 					"div":{
 						"table" @(width:'40%', border:'1', cellspacing:'0'): {
 								"tr":{
+                                "th": "CorrelationId",
+                                "td": vars.correlationId
+                            },
+                            "tr":{
 									"th": "InterfaceName",
 									"td": p('app.name')
 								},
@@ -1014,15 +1285,41 @@ output application/json
 					}
 				}
 			}
-		}]]]></email:content>
+		}&#93;&#93;&#93;></email:content>
 									</email:body>
 									<email:attachments ><![CDATA[#[%dw 2.0
 output application/csv header=true
----
-{"Products_Failures.csv": payload}]]]></email:attachments>
+&#45;&#45;-
+{"Products_Failures.csv": payload}&#93;&#93;&#93;></email:attachments>
 								</email:send>
+								<outlook365:send-mail doc:name=" Products Update Report Send mail" doc:id="bc36c22d-ff13-4a4a-bb99-13ef08ba047d" config-ref="Outlook365_Outlook365_Config" userId="p('outlook.user')">
+									<outlook365:message ><![CDATA[#[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+    "subject": "*** E-mail Notification: " ++ p('app.env') ++ " *** Products Update Report for : " ++ p('app.name'),
+    "body": {
+        "contentType": "HTML",
+        "content": "<html><body><div class=\"total\"><div class=\"header\"><h2>Status Update from Mulesoft</h2></div><div class=\"content\"><p>Hi,</p><p>Greetings!!!</p><p>" ++ (vars.status default "") ++ "</p></div><div><table width=\"40%\" border=\"1\" cellspacing=\"0\"><tr><th>CorrelationId</th><td>" ++ (vars.correlationId default "N/A") ++ "</td></tr><tr><th>InterfaceName</th><td>" ++ p('app.name') ++ "</td></tr><tr><th>Status</th><td>Invalid External Ids were generated during the initial mapping. Please Review the Attachment to check for failed records</td></tr></table></div></div></body></html>"
+    },
+    "toRecipients": (p('smtp.to') splitBy ",") map (addr) -> {
+        "emailAddress": {
+            "address": trim(addr)
+        }
+    },
+    "saveToSentItems": true,
+    "attachments": [
+        {
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            "name": "Products_Failures.csv",
+            "contentType": "text/csv",
+            "contentBytes": (write(payload, "application/csv", {"header": true}) as Binary) toBase64
+        }
+    &#93;
+}&#93;&#93;&#93;></outlook365:message>
+								</outlook365:send-mail>
 							</otherwise>
-						</choice>
+						</choice> [STUDIO] -->
 					</when>
 					<otherwise>
 						<logger level="INFO" doc:name="Logger" doc:id="494fe45a-1aed-45dd-ad10-2ad4d7e64ba1" message='#["\n Success Scenario Does Not Need Emails"]' category="${log.category}"/>

@@ -4,17 +4,18 @@
 
 	<groupId>com.ntn</groupId>
 	<artifactId>ntn-products-jde-salesforce-sync-app</artifactId>
-	<version>1.3.0-RC67</version>
+	<version>1.3.0-RC79</version>
 	<packaging>mule-application</packaging>
 
-	<name>ntn-products-jde-salesforce-sync-app</name>
+	<name>ntn-products-jde-salesforce-sync-app-rc78</name>
 
 	<properties>
 		<munit.skipTests>true</munit.skipTests>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<mule.maven.plugin.version>4.10.3</mule.maven.plugin.version>
+		<exchange.mule.maven.plugin.version>0.1.7</exchange.mule.maven.plugin.version>
 		<app.runtime>4.9.2</app.runtime>
 	</properties>
 
@@ -30,21 +31,13 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
-				<!-- <configuration>
-					<classifier>mule-application</classifier>
-					<sharedLibraries>
-						<sharedLibrary>
-							<groupId>com.mycompany</groupId>
-							<artifactId>ojdbc8-12.2.0.1-0.1</artifactId>
-						</sharedLibrary>
-					</sharedLibraries>
-				</configuration> -->
+				<!-- <configuration> <classifier>mule-application</classifier> <sharedLibraries> 
+					<sharedLibrary> <groupId>com.mycompany</groupId> <artifactId>ojdbc8-12.2.0.1-0.1</artifactId> 
+					</sharedLibrary> </sharedLibraries> </configuration> -->
 				<configuration>
 					<sharedLibraries>
-						<!-- <sharedLibrary>
-							<groupId>com.oracle.database.jdbc</groupId>
-							<artifactId>ojdbc11</artifactId>
-						</sharedLibrary> -->
+						<!-- <sharedLibrary> <groupId>com.oracle.database.jdbc</groupId> <artifactId>ojdbc11</artifactId> 
+							</sharedLibrary> -->
 						<sharedLibrary>
 							<groupId>com.oracle.database.jdbc.debug</groupId>
 							<artifactId>ojdbc11_g</artifactId>
@@ -53,6 +46,27 @@
 					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
+			<!-- <plugin>
+				<groupId>e78cb80e-5627-43bc-8962-f4d269c5ef87</groupId>
+				<artifactId>exchange-mule-maven-plugin</artifactId>
+				<version>${exchange.mule.maven.plugin.version}</version>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>exchange-pre-deploy</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>deploy</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>exchange-deploy</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin> -->
 		</plugins>
 	</build>
 
@@ -65,16 +79,10 @@
 			<version>2.20.0</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
-		<!-- <dependency>
-			<groupId>com.mycompany</groupId>
-			<artifactId>ojdbc8-12.2.0.1-0.1</artifactId>
-			<version>0.1</version>
-		</dependency> -->
-		<!-- <dependency>
-			<groupId>com.oracle.database.jdbc</groupId>
-			<artifactId>ojdbc11</artifactId>
-			<version>23.9.0.25.07</version>
-		</dependency> -->
+		<!-- <dependency> <groupId>com.mycompany</groupId> <artifactId>ojdbc8-12.2.0.1-0.1</artifactId> 
+			<version>0.1</version> </dependency> -->
+		<!-- <dependency> <groupId>com.oracle.database.jdbc</groupId> <artifactId>ojdbc11</artifactId> 
+			<version>23.9.0.25.07</version> </dependency> -->
 		<dependency>
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-tracing-module</artifactId>
@@ -134,12 +142,12 @@
 			<artifactId>ojdbc11_g</artifactId>
 			<version>21.20.0.0</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>cloud.anypoint</groupId>
-			<artifactId>json-logger</artifactId>
-			<version>3.17.0</version>
+		<dependency>
+			<groupId>com.mulesoft.connectors</groupId>
+			<artifactId>mule4-outlook365-connector</artifactId>
+			<version>1.3.2</version>
 			<classifier>mule-plugin</classifier>
-		</dependency> -->
+		</dependency>
 	</dependencies>
 
 	<repositories>
@@ -168,4 +176,12 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+	<distributionManagement>
+		<repository>
+			<id>anypoint-exchange-v3</id>
+			<name>Anypoint Exchange V3</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/e78cb80e-5627-43bc-8962-f4d269c5ef87/maven</url>
+			<layout>default</layout>
+		</repository>
+	</distributionManagement>
 </project>

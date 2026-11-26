@@ -3,6 +3,11 @@ app:
   env: "UAT"
   name:    "ntn-products-jde-salesforce-sync-app"
   
+  
+oauth.sf: 
+  URL: "https://ntnconnect--stage.sandbox.my.salesforce.com/services/oauth2/token"
+  scopes:  "api, refresh_token, offline_access" 
+    
 http:
   host: "0.0.0.0"
   port: "8081"
@@ -26,3 +31,14 @@ pricebooks:
   uri : "pricebooks"
   #host: "0.0.0.0"
   #port: "8082"
+  
+outlook:
+  BaseURL: 'https://graph.microsoft.com/v1.0'  
+  tokenURL: 'https://login.microsoftonline.com/9180b8ab-ddaa-4d73-b2aa-fbf527b822c0/oauth2/v2.0/token'
+  scopes: 'https://graph.microsoft.com/.default'
+  user: 'donotreply@ntnusa.com'
+  
+objectstore:
+  maxEntry: '1'
+  ttl: '3300'
+  expInterval: '3599'

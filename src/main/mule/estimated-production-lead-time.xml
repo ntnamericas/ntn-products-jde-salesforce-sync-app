@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+<mule xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
 	xmlns:os="http://www.mulesoft.org/schema/mule/os"
 	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
 	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
@@ -8,15 +9,15 @@
 	xmlns:db="http://www.mulesoft.org/schema/mule/db"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
-http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
 	<flow name="eplt-min-max-flow"
 		doc:id="ac8c8c25-e0df-466a-ab5a-ead4818c2906" tracking:enable-default-events="true" initialState="${eplt.initialState}">
 		<scheduler doc:name="eplt-scheduler"
@@ -32,29 +33,24 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 			<ee:variables>
 				<ee:set-variable resource="dwl/vars-epltjobRun.dwl"
 					variableName="epltjobRun" />
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/json
+---
+uuid()]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="jobRun logger"
-			doc:id="f4308889-37c0-40d5-8dcd-3807b4b14d8c"
-			message="#[vars.epltjobRun]" category="${log.category}" />
-		<os:retrieve doc:name="retrievePreviousJobRun"
-			doc:id="9a1b21a1-4002-4b9d-a133-68cf0b335cae"
-			key="previousepltJobRun" target="previousepltJobRun"
-			objectStore="Object_store_Previous_eplt_Job_Run">
+		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="48b3bbf1-82c5-4aaf-b07c-f81cd2b150a9" correlationId="#[vars.correlationId]">
+			<os:retrieve doc:name="retrievePreviousJobRun" doc:id="9a1b21a1-4002-4b9d-a133-68cf0b335cae" key="previousepltJobRun" target="previousepltJobRun" objectStore="Object_store_Previous_eplt_Job_Run">
 			<os:default-value><![CDATA[#[vars.epltjobRun]]]></os:default-value>
 		</os:retrieve>
-		<logger level="INFO" doc:name="Logger" doc:id="a1a57b78-1fd9-489f-a616-3fb8ef7ffd91" message="#[vars.previousepltJobRun]"/>
-		<logger level="INFO" doc:name="Logger"
-			doc:id="ec351cde-888f-4afb-aaa0-17b804ff7188"
-			message='#["Calling estimated-lead-time-min-max-subflow"]' category="${log.category}" />
-		<flow-ref doc:name="estimated-lead-time-min-maxFlow"
-			doc:id="a2951d4c-1c36-4da5-9a8a-10287dcf1163"
-			name="estimated-lead-time-min-max-subflow" />
-		<os:store doc:name="Store current job run details"
-			doc:id="60b0a7c0-d2d7-4396-9748-5d8deadf725d" key="previousepltJobRun"
-			objectStore="Object_store_Previous_eplt_Job_Run">
+			<logger level="INFO" doc:name="jobRun logger" doc:id="f4308889-37c0-40d5-8dcd-3807b4b14d8c" message="#[vars.epltjobRun]" category="${log.category}" />
+			<logger level="INFO" doc:name="Logger" doc:id="a1a57b78-1fd9-489f-a616-3fb8ef7ffd91" message="#[vars.previousepltJobRun]" />
+			<logger level="INFO" doc:name="Logger" doc:id="ec351cde-888f-4afb-aaa0-17b804ff7188" message='#["Calling estimated-lead-time-min-max-subflow"]' category="${log.category}" />
+			<flow-ref doc:name="estimated-lead-time-min-maxFlow" doc:id="a2951d4c-1c36-4da5-9a8a-10287dcf1163" name="estimated-lead-time-min-max-subflow" />
+			<os:store doc:name="Store current job run details" doc:id="60b0a7c0-d2d7-4396-9748-5d8deadf725d" key="previousepltJobRun" objectStore="Object_store_Previous_eplt_Job_Run">
 			<os:value><![CDATA[#[vars.epltjobRun]]]></os:value>
 		</os:store>
+		</tracing:with-correlation-id>
 		<error-handler ref="global-error-handler" />
 	</flow>
 	<sub-flow name="estimated-lead-time-min-max-subflow" doc:id="c6f64cbe-6586-4689-911f-80e608f56f58">
@@ -75,7 +71,7 @@ readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dw
 			<error-handler ref="global-error-handler" />
 		</try>
 		<logger level="INFO" doc:name="Logger" doc:id="cd7810e0-dde1-4d18-b33a-09b8086c7c02" category="DBSTREAMCONSUMPTION" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.dbresult]"/>
-		<logger level="INFO" doc:name="Logger" doc:id="03707cad-e3d0-4bd0-95f6-231e0387add8" message='#["Estimated Lead Time Result Sets Received From JDE: " ++ sizeOf(vars.dbresult)]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="03707cad-e3d0-4bd0-95f6-231e0387add8" message='#["Estimated Lead Time Result Sets Received From JDE: " ++ ((sizeOf(vars.dbresult) default 0) as String)]'/>
 		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
 			<ee:message>
 				<ee:set-payload resource="dwl/estimated-lead-time-min-max-subflow.xml.dwl" />

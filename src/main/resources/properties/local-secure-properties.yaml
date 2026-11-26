@@ -1,2 +1,6 @@
 client-id: ""
 client-secret: ""
+
+outlook:
+ client_id: "![U13gBD8x24vFufV3KGX8YBv+HgbIQtJkKEiyApL+cR9XDBc71jLO3g==]"      
+ client_secret: "![ORz/BKcKkZwzw9mIC4Asjvqh39+jz680JM2Ax+HvGpBr57wPELBi6X3oOcc58/Mz]"

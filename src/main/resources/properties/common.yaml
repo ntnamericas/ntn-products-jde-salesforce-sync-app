@@ -90,7 +90,7 @@ scheduler:
 smtp:
   host: "smtp.office365.com"
   port: "25"  
-  to: "donotreply@ntnusa.com,ntnmule@prowesssoft.com"
+  to: "donotreply@ntnusa.com,ntnmule@prowesssoft.com,simran.modi@prowesssoft.com"
  
 products:
   initialState : "started"

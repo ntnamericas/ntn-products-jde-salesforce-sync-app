@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mule
+	xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing"
 	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
 	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
 	xmlns:os="http://www.mulesoft.org/schema/mule/os"
@@ -9,15 +10,15 @@
 	xmlns:db="http://www.mulesoft.org/schema/mule/db"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
-http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
 	<flow name="cif-min-max-flow"
 		doc:id="82ea5a52-b6c6-4f0c-88e6-f27cc9bb9088" initialState="${cif.initialState}" tracking:enable-default-events="true">
 		<scheduler doc:name="cif-scheduler"
@@ -33,19 +34,19 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 			<ee:variables>
 				<ee:set-variable resource="dwl/vars-cifjobRun.dwl"
 					variableName="cifjobRun" />
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/json
+---
+uuid()]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="jobRun logger"
-			doc:id="22b638ed-5b6a-41ea-8461-c8fcacc97b68"
-			message="#[vars.cifjobRun]" category="${log.category}" />
-		<os:retrieve doc:name="retrievePreviousJobRun"
-			doc:id="11df79f5-c531-40af-ba38-5cdf73780b6d" key="previouscifJobRun"
-			target="previouscifJobRun"
-			objectStore="Object_store_Previous_cif_Job_Run">
+		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="647a8c7b-7edb-4144-8138-c0959e4864a2" correlationId="#[vars.correlationId]">
+			<logger level="INFO" doc:name="jobRun logger" doc:id="22b638ed-5b6a-41ea-8461-c8fcacc97b68" message="#[vars.cifjobRun]" category="${log.category}" />
+			<os:retrieve doc:name="retrievePreviousJobRun" doc:id="11df79f5-c531-40af-ba38-5cdf73780b6d" key="previouscifJobRun" target="previouscifJobRun" objectStore="Object_store_Previous_cif_Job_Run">
 			<os:default-value><![CDATA[#[vars.cifjobRun]]]></os:default-value>
 		</os:retrieve>
-		<logger level="INFO" doc:name="Logger" doc:id="c89d96ff-75d5-4acc-a8ca-ba6b0da3e358" message="#[vars.previouscifJobRun]"/>
-		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="bcea2b08-8ded-4b75-9d49-fc62d3f32132" >
+			<logger level="INFO" doc:name="Logger" doc:id="c89d96ff-75d5-4acc-a8ca-ba6b0da3e358" message="#[vars.previouscifJobRun]" />
+			<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="bcea2b08-8ded-4b75-9d49-fc62d3f32132" >
 			<ee:message >
 			</ee:message>
 			<ee:variables >
@@ -56,16 +57,12 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 &#93;&#93;></ee:set-variable>
 			</ee:variables>
 		</ee:transform> [STUDIO] -->
-		<logger level="INFO" doc:name="Logger"
-			doc:id="adcd6a80-cd8a-41c6-ac9e-f478fb35b5bb"
-			message='Calling "cif-min-max-subFlow"' category="${log.category}" />
-		<flow-ref doc:name="cif-min-maxFlow"
-			doc:id="84e34ec2-e4c1-40f0-8e6e-98d763655481" name="cif-min-max-subFlow" />
-		<os:store doc:name="Store current job run details"
-			doc:id="2d784d8c-92aa-4f61-8944-d57765ebe71c" key="previouscifJobRun"
-			objectStore="Object_store_Previous_cif_Job_Run">
+			<logger level="INFO" doc:name="Logger" doc:id="adcd6a80-cd8a-41c6-ac9e-f478fb35b5bb" message='Calling "cif-min-max-subFlow"' category="${log.category}" />
+			<flow-ref doc:name="cif-min-maxFlow" doc:id="84e34ec2-e4c1-40f0-8e6e-98d763655481" name="cif-min-max-subFlow" />
+			<os:store doc:name="Store current job run details" doc:id="2d784d8c-92aa-4f61-8944-d57765ebe71c" key="previouscifJobRun" objectStore="Object_store_Previous_cif_Job_Run">
 			<os:value><![CDATA[#[vars.cifjobRun]]]></os:value>
 		</os:store>
+		</tracing:with-correlation-id>
 		<error-handler ref="global-error-handler" />
 	</flow>
 	<sub-flow name="cif-min-max-subFlow" doc:id="27fd8699-5cd7-4ab1-8e67-ca6c39542d55">
@@ -86,7 +83,7 @@ readUrl("classpath://queryScript/sqlScript-cif-consolidated-$(p('mule.env')).dwl
 			<error-handler ref="global-error-handler" />
 		</try>
 		<logger level="INFO" doc:name="Logger" doc:id="cbcb3436-07e0-4465-9b1d-b6d7048723ec" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.dbresult]" category="DBSTREAMCONSUMPTION"/>
-		<logger level="INFO" doc:name="Logger" doc:id="3a871edc-ecb9-47e7-b938-b23a1c6739d5" message='#["CIF Min Max Result Sets Received From JDE: " ++ sizeOf(vars.dbresult)]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="3a871edc-ecb9-47e7-b938-b23a1c6739d5" message='#["CIF Min Max Result Sets Received From JDE: "  ++ ((sizeOf(vars.dbresult) default 0) as String)]'/>
 		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
 			<ee:message>
 				<ee:set-payload resource="dwl/cif-min-max-subFlow.dwl" />
