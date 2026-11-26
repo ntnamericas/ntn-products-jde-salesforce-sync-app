@@ -3,3 +3,13 @@ http:
   port: "8081"
   timeout: "15000"
   
+outlook:
+  BaseURL: 'https://graph.microsoft.com/v1.0'  
+  tokenURL: 'https://login.microsoftonline.com/9180b8ab-ddaa-4d73-b2aa-fbf527b822c0/oauth2/v2.0/token'
+  scopes: 'https://graph.microsoft.com/.default'
+  user: 'donotreply@ntnusa.com'
+  
+objectstore:
+  maxEntry: '1'
+  ttl: '3300'
+  expInterval: '3599'  

@@ -7,7 +7,7 @@ fun concatKeyValue(DRKY, DRDL01, pvalue) =
       else
         pvalue)
 ---
-(payload map ((item, index) ->{
+(vars.metadata map ((item, index) ->{
     //Part_Number_Type__c : In mapped in the Mulesoft Code while splitting data into Base and Industry External ID.
     IMLITM: trim(item.IMLITM),
     IBLITM: trim(item.IBLITM),

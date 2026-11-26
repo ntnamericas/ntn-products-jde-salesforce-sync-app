@@ -1,0 +1,50 @@
+%dw 2.0
+output text/plain
+--- 
+"WITH TARGET_IDS AS (
+    /* This CTE captures the 100 IDs passed from the Mule Batch Aggregator */
+    SELECT COLUMN_VALUE AS REQ_LITM 
+    FROM TABLE(CAST(:targetIds AS SYS.ODCIVARCHAR2LIST))
+),
+IBLTLV_BASE AS (
+    SELECT 
+        TRIM(F2.IBLITM) AS IBLITM, 
+        TRIM(F2.IBITM) AS IBITM, 
+        TRIM(F2.IBPRP1) AS IBPRP1, 
+        TRIM(F2.IBSRP4) AS IBSRP4
+    FROM PRODDTA.F4102 F2
+    INNER JOIN TARGET_IDS TI ON TRIM(F2.IBLITM) = TI.REQ_LITM
+    WHERE TRIM(F2.IBMCU) = '1801'
+),
+IM_LOOKUP AS (
+    SELECT 
+        TRIM(F1.IMLITM) AS IMLITM, 
+        TRIM(F1.IMITM) AS IMITM, 
+        TRIM(F1.IMSRTX) AS IMSRTX
+    FROM PRODDTA.F4101 F1
+    INNER JOIN IBLTLV_BASE B ON TRIM(F1.IMITM) = B.IBITM
+),
+RELATED_PARTS AS (
+    /* Finds all parts sharing the same IMSRTX to calculate the Group Min/Max */
+    SELECT 
+        L.IMLITM AS ORIGINAL_LITM,
+        TRIM(F1_REL.IMLITM) AS RELATED_LITM
+    FROM IM_LOOKUP L
+    INNER JOIN PRODDTA.F4101 F1_REL ON L.IMSRTX = TRIM(F1_REL.IMSRTX)
+),
+MINMAX_CALC AS (
+    /* Calculates Min/Max for the groups identified above */
+    SELECT 
+        RP.ORIGINAL_LITM,
+        MIN(F2_REL.IBLTLV) AS GROUP_MIN,
+        MAX(F2_REL.IBLTLV) AS GROUP_MAX
+    FROM RELATED_PARTS RP
+    INNER JOIN PRODDTA.F4102 F2_REL ON RP.RELATED_LITM = TRIM(F2_REL.IBLITM)
+    WHERE TRIM(F2_REL.IBMCU) = '1801'
+    GROUP BY RP.ORIGINAL_LITM
+)
+SELECT 
+    MC.ORIGINAL_LITM AS External_ID__c,
+    MC.GROUP_MIN AS Estimated_Production_Lead_Time_Min__c,
+    MC.GROUP_MAX AS Estimated_Production_Lead_Time_Max__c
+FROM MINMAX_CALC MC"

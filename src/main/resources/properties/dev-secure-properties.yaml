@@ -2,6 +2,11 @@ db:
   password: "![uMrGHbWyEL54QEMh+18S/A==]"
   user: "![7QqCW9QjsxUigvR2UPZDgw==]"
   
+  
+oauth.sf:
+  key: "![x/CzuYzqCo6gD0ZANTB1PXcZfvrstbY4oHx/NTgClwyJVNFLV7bUiXZ962doqle2sQbAiKLdrhlbvggJ76a93KGR5qW9rBXIgB8ID/5oUIRUUX8iGUaAyQ==]"  
+  secret: "![p9uXjp24CVkIYZ56+8q7FqGhvi5a1VEw61r2+Owp4zkaCY5dgQA6a0e7xK9GDh+n33UQvSjNJURAPGIJAN4xPFVcRGgvI/qq]"  
+  
 #ntn web service details
 sf:
   password : "![hRt1ri9KnH5UalfO4hI4Vg==]"
@@ -11,4 +16,8 @@ sf:
 
 smtp:
   user: "![hRt1ri9KnH7VngaJcayGZ0D8arLBERHy1f3i+Ca4XPI=]"
-  password: "![Yk3HBzCPPp5RL3nOfWNzirX1mi98hVMs]"
+  password: "![OEVUB1RAzXUZjFnqchS9G5/7TrXXCDHG]"
+  
+outlook:
+ client_id: "![U13gBD8x24vFufV3KGX8YBv+HgbIQtJkKEiyApL+cR9XDBc71jLO3g==]"      
+ client_secret: "![ORz/BKcKkZwzw9mIC4Asjvqh39+jz680JM2Ax+HvGpBr57wPELBi6X3oOcc58/Mz]"  

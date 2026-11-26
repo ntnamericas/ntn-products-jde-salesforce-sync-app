@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+<mule xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
 	xmlns:os="http://www.mulesoft.org/schema/mule/os"
 	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
 	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
@@ -8,15 +9,15 @@
 	xmlns:db="http://www.mulesoft.org/schema/mule/db"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
-http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
 	<flow name="eplt-min-max-flow"
 		doc:id="ac8c8c25-e0df-466a-ab5a-ead4818c2906" tracking:enable-default-events="true" initialState="${eplt.initialState}">
 		<scheduler doc:name="eplt-scheduler"
@@ -32,29 +33,24 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 			<ee:variables>
 				<ee:set-variable resource="dwl/vars-epltjobRun.dwl"
 					variableName="epltjobRun" />
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/json
+---
+uuid()]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="jobRun logger"
-			doc:id="f4308889-37c0-40d5-8dcd-3807b4b14d8c"
-			message="#[vars.epltjobRun]" category="${log.category}" />
-		<os:retrieve doc:name="retrievePreviousJobRun"
-			doc:id="9a1b21a1-4002-4b9d-a133-68cf0b335cae"
-			key="previousepltJobRun" target="previousepltJobRun"
-			objectStore="Object_store_Previous_eplt_Job_Run">
+		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="48b3bbf1-82c5-4aaf-b07c-f81cd2b150a9" correlationId="#[vars.correlationId]">
+			<os:retrieve doc:name="retrievePreviousJobRun" doc:id="9a1b21a1-4002-4b9d-a133-68cf0b335cae" key="previousepltJobRun" target="previousepltJobRun" objectStore="Object_store_Previous_eplt_Job_Run">
 			<os:default-value><![CDATA[#[vars.epltjobRun]]]></os:default-value>
 		</os:retrieve>
-		<logger level="INFO" doc:name="Logger" doc:id="a1a57b78-1fd9-489f-a616-3fb8ef7ffd91" message="#[vars.previousepltJobRun]"/>
-		<logger level="INFO" doc:name="Logger"
-			doc:id="ec351cde-888f-4afb-aaa0-17b804ff7188"
-			message='#["Calling estimated-lead-time-min-max-subflow"]' category="${log.category}" />
-		<flow-ref doc:name="estimated-lead-time-min-maxFlow"
-			doc:id="a2951d4c-1c36-4da5-9a8a-10287dcf1163"
-			name="estimated-lead-time-min-max-subflow" />
-		<os:store doc:name="Store current job run details"
-			doc:id="60b0a7c0-d2d7-4396-9748-5d8deadf725d" key="previousepltJobRun"
-			objectStore="Object_store_Previous_eplt_Job_Run">
+			<logger level="INFO" doc:name="jobRun logger" doc:id="f4308889-37c0-40d5-8dcd-3807b4b14d8c" message="#[vars.epltjobRun]" category="${log.category}" />
+			<logger level="INFO" doc:name="Logger" doc:id="a1a57b78-1fd9-489f-a616-3fb8ef7ffd91" message="#[vars.previousepltJobRun]" />
+			<logger level="INFO" doc:name="Logger" doc:id="ec351cde-888f-4afb-aaa0-17b804ff7188" message='#["Calling estimated-lead-time-min-max-subflow"]' category="${log.category}" />
+			<flow-ref doc:name="estimated-lead-time-min-maxFlow" doc:id="a2951d4c-1c36-4da5-9a8a-10287dcf1163" name="estimated-lead-time-min-max-subflow" />
+			<os:store doc:name="Store current job run details" doc:id="60b0a7c0-d2d7-4396-9748-5d8deadf725d" key="previousepltJobRun" objectStore="Object_store_Previous_eplt_Job_Run">
 			<os:value><![CDATA[#[vars.epltjobRun]]]></os:value>
 		</os:store>
+		</tracing:with-correlation-id>
 		<error-handler ref="global-error-handler" />
 	</flow>
 	<sub-flow name="estimated-lead-time-min-max-subflow" doc:id="c6f64cbe-6586-4689-911f-80e608f56f58">
@@ -68,12 +64,14 @@ readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dw
 		</ee:transform>
 		<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="525c42fe-7d1d-46bf-a4ff-8c3b123a74ef" expression="#[payload]" />
 		<try doc:name="Try" doc:id="3c525c9b-2166-4054-9e0e-a6a81ee65749" >
-			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="Oracle_JDE_Database_Config">
-			<db:sql><![CDATA[#[payload]]]></db:sql>
+			<db:select doc:name="Select" doc:id="92412c72-5e9f-438b-8cd6-2402e18439a0" config-ref="EPLTOracle_JDE_Database_Config" target="dbresult" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.eplt}">
+			<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+				<db:sql><![CDATA[#[payload]]]></db:sql>
 		</db:select>
 			<error-handler ref="global-error-handler" />
 		</try>
-		<logger level="INFO" doc:name="Logger" doc:id="03707cad-e3d0-4bd0-95f6-231e0387add8" message='#["Estimated Lead Time Result Sets Received From JDE: " ++ sizeOf(payload)]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="cd7810e0-dde1-4d18-b33a-09b8086c7c02" category="DBSTREAMCONSUMPTION" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.dbresult]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="03707cad-e3d0-4bd0-95f6-231e0387add8" message='#["Estimated Lead Time Result Sets Received From JDE: " ++ ((sizeOf(vars.dbresult) default 0) as String)]'/>
 		<ee:transform doc:name="Transform Message" doc:id="3cd5750e-9378-4636-9a2b-9cd55f983e36">
 			<ee:message>
 				<ee:set-payload resource="dwl/estimated-lead-time-min-max-subflow.xml.dwl" />
@@ -89,7 +87,10 @@ readUrl("classpath://queryScript/sqlScript-eplt-consolidated-$(p('mule.env')).dw
 			<when expression="#[payload !=[]]">
 				<scatter-gather doc:name="Scatter-Gather" doc:id="19428e76-6b5d-4624-b32e-99b06b640b48" >
 					<route >
-						<batch:job jobName="elpt-base-part-batch-job" doc:id="822de1d2-9a46-47e0-8474-0e1adc89ab42" blockSize="${batch.size}">
+						<batch:job jobName="elpt-base-part-batch-job" doc:id="822de1d2-9a46-47e0-8474-0e1adc89ab42" blockSize="${eplt.batch.size}" maxFailedRecords="${batch.maxFailedRecords}">
+							<batch:history >
+								<batch:expiration maxAge="${batch.maxAge}" ageUnit="DAYS" />
+							</batch:history>
 							<batch:process-records >
 								<batch:step name="base-batch-step" doc:id="2d9cd116-d822-41c9-976b-52adc04bcb6a" acceptExpression='#[payload.drawExternalID != null  and payload.drawExternalID !="" and payload.drawExternalID != [] and payload.drawExternalID != [""]  ]'>
 									<ee:transform doc:name="store the externalId" doc:id="1d43370c-8027-4ac4-82e6-5659fefe32b6">
@@ -113,8 +114,9 @@ readUrl("classpath://queryScript/sqlScript-eplt-imdraw-$(p('mule.env')).dwl","te
 				</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="031fa04b-48e7-4d38-b2e6-01d1c4ecefef" expression="#[payload]" />
 									<try doc:name="Try" doc:id="21ffae84-491a-4456-b8f7-3ff0258a0cf5" >
-										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="Oracle_JDE_Database_Config">
-					<db:sql><![CDATA[#[payload]]]></db:sql>
+										<db:select doc:name="Select" doc:id="53297b6f-eef4-4209-b34c-e816d08799ea" config-ref="EPLTOracle_JDE_Database_Config" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.eplt}">
+					<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+											<db:sql><![CDATA[#[payload]]]></db:sql>
 				</db:select>
 										<error-handler ref="global-error-handler" />
 									</try>
@@ -146,12 +148,16 @@ payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
 												<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload[0]]]></ee:set-payload>
+payload[0]
+
+//payload map ($[0])]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
-										<logger level="INFO" doc:name="Logger" doc:id="d8dcc311-8324-433e-9bb6-044ddbbe1df2" message="Logging BEFOR for Estimated Lead Time for BASE PARTS"/>
+										<logger level="INFO" doc:name="Logger" doc:id="d8dcc311-8324-433e-9bb6-044ddbbe1df2" message="Logging BEFORE for Estimated Lead Time for BASE PARTS"/>
 										<try doc:name="Try" doc:id="b639f2f5-e5b0-4891-8f82-9ad46d04637e" >
-											<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" />
+											<salesforce:upsert externalIdFieldName="${sf.extId}" doc:name="Upsert" doc:id="2f84f114-db6f-4cc0-8cd9-10b2789cd5b1" config-ref="Salesforce_Config" objectType="${sf.object}" >
+												<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+											</salesforce:upsert>
 											<error-handler ref="global-error-handler" />
 										</try>
 										<logger level="INFO" doc:name="Logger" doc:id="3929cf74-53cd-435f-9603-75215abb1b4f" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>
@@ -165,13 +171,16 @@ payload[0]]]></ee:set-payload>
 						</batch:job>
 					</route>
 					<route >
-						<batch:job jobName="eplt-indusry-part-batch-job" doc:id="3c02836a-380e-46f8-bf7c-80fe6eca610c" blockSize="${batch.size}">
+						<batch:job jobName="eplt-indusry-part-batch-job" doc:id="3c02836a-380e-46f8-bf7c-80fe6eca610c" blockSize="${eplt.batch.size}" maxFailedRecords="${batch.maxFailedRecords}">
+							<batch:history >
+								<batch:expiration maxAge="${batch.maxAge}" ageUnit="DAYS" />
+							</batch:history>
 							<batch:process-records >
 								<batch:step name="industry-batch-step" doc:id="2af4d222-0ae0-44a4-b733-5b510514fce4" acceptExpression='#[payload.srtxExternalID != null  and payload.srtxExternalID !="" and payload.srtxExternalID != [] and payload.srtxExternalID != [""] ]'>
 									<ee:transform doc:name="store the externalId" doc:id="4dfa9e41-38b2-48d3-85fa-4f434dfe1967">
 										<ee:message />
 										<ee:variables>
-											<ee:set-variable variableName="strxExternalId"><![CDATA[%dw 2.0
+											<ee:set-variable variableName="srtxExternalId"><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-variable>
@@ -189,8 +198,9 @@ readUrl("classpath://queryScript/sqlScript-eplt-imsrtx-$(p('mule.env')).dwl","te
 		</ee:transform>
 									<ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="3f6a677a-1d35-4e14-b01c-beabac161a91" expression="#[payload]" />
 									<try doc:name="Try" doc:id="9c9ae99a-4612-45d6-870b-f48af1923528" >
-										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="Oracle_JDE_Database_Config">
-					<db:sql><![CDATA[#[payload]]]></db:sql>
+										<db:select doc:name="Select" doc:id="c8e05ae7-1f71-4506-8a69-1e6e87993fcb" config-ref="EPLTOracle_JDE_Database_Config" queryTimeout="${db.queryTimeout}" queryTimeoutUnit="MINUTES" fetchSize="${db.fetchSize.eplt}">
+					<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}"/>
+											<db:sql><![CDATA[#[payload]]]></db:sql>
 				</db:select>
 										<error-handler ref="global-error-handler" />
 									</try>
@@ -201,7 +211,7 @@ readUrl("classpath://queryScript/sqlScript-eplt-imsrtx-$(p('mule.env')).dwl","te
 output application/json
 ---
 [{
-    External_ID__c : vars.strxExternalId.srtxExternalID,
+    External_ID__c : vars.srtxExternalId.srtxExternalID,
     Estimated_Production_Lead_Time_Max__c : ((payload.MAX_IBLTLV_SRTX[0]) default "0") as String,
     Estimated_Production_Lead_Time_Min__c : ((payload.MIN_IBLTLV_SRTX[0]) default "0") as String
 }]]]></ee:set-payload>
@@ -222,12 +232,16 @@ payload map read( $, 'application/json')&#93;&#93;></ee:set-payload>
 												<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload[0]]]></ee:set-payload>
+payload[0]
+
+//payload map ($[0])]]></ee:set-payload>
 											</ee:message>
 										</ee:transform>
 										<logger level="INFO" doc:name="Logger" doc:id="d10c18bf-a0cd-49be-88bc-1f7d9bd97456" message="Logging BEFOR for Estimated Lead Time for INDUSTRY PARTS"/>
 										<try doc:name="Try" doc:id="49c5ca1a-424b-4934-bc86-44f487b464a8" >
-											<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" />
+											<salesforce:upsert doc:name="Upsert" doc:id="8b79780b-1904-4bb9-b75b-10a1f141a53c" config-ref="Salesforce_Config" objectType="${sf.object}" externalIdFieldName="${sf.extId}" >
+												<reconnect frequency="${reconnect.frequency}" count="${reconnect.attempts}" />
+											</salesforce:upsert>
 											<error-handler ref="global-error-handler" />
 										</try>
 										<logger level="INFO" doc:name="Logger" doc:id="5b7ae072-807d-447c-85ab-073e3ed64b18" message="#[%dw 2.0&#10;output application/json&#10;---&#10;if (payload.successful == true) {Successful : payload.successful}&#10;else (payload.items map() -&gt; {&#10;	failedId: $.id,&#10;	message: $.message&#10;	&#10;})]"/>

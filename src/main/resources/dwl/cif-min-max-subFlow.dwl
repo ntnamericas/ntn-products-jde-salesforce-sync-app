@@ -1,7 +1,7 @@
 %dw 2.0
 output application/json
 ---
-payload map {
+vars.dbresult map {
     drawExternalID: if ((trim($.IMDRAW_COLITM) != "") and (trim($.IMDRAW_COLITM) != null) 
     	and trim($.IBPRP1_COLITM != "") and trim($.IBPRP1_COLITM != null) and trim($.IBSRP4_COLITM != "")
     	and trim($.IBSRP4_COLITM != null)) 

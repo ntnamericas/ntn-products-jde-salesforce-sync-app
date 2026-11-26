@@ -11,4 +11,12 @@ sf:
  
 smtp:
   user: "![hRt1ri9KnH7VngaJcayGZ0D8arLBERHy1f3i+Ca4XPI=]"
-  password: "![BapbFMsL0srqwUVI3ICHLlxe4IERbHKP]"
+  password: "![OEVUB1RAzXUZjFnqchS9G5/7TrXXCDHG]"
+
+oauth.sf:
+  key: "![EcXBTeWMMaVCEEi9WUaGSqE09nvQOCXBNsj2DmbRC/AbhwEmbaAz3adwVpRuDlDO0jwtiD6dMvGVpYdaa9Cyo7Qfxk5QS3bTuZ1PoOd4gwzvcgdtzAicLg==]"  
+  secret: "![rXBTZHgAEezsVvgpeAsgc0dmxqgxyklP69vBR26Cne4032Y66u2ERVqf2IpGsXOCOL8Gv+Bbj55/CHp2Gd7HgWDyOo2xLuhO]"     
+  
+outlook:
+ client_id: "![U13gBD8x24vFufV3KGX8YBv+HgbIQtJkKEiyApL+cR9XDBc71jLO3g==]"      
+ client_secret: "![ORz/BKcKkZwzw9mIC4Asjvqh39+jz680JM2Ax+HvGpBr57wPELBi6X3oOcc58/Mz]"

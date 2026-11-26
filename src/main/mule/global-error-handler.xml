@@ -1,69 +1,170 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+<mule
+	xmlns:outlook365="http://www.mulesoft.org/schema/mule/outlook365"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
 	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
-	<error-handler name="global-error-handler" doc:id="de9955d1-5dd8-4413-9527-daa9f659af66" >
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="15cc8f15-53ee-497c-a354-356487a20eee" type="ANY">
-			<ee:transform doc:name="Transform Message" doc:id="734aab6b-0ca5-4e71-8d33-9c25a1e1c332" >
-				<ee:message >
-					<ee:set-payload ><![CDATA[%dw 2.0
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/outlook365 http://www.mulesoft.org/schema/mule/outlook365/current/mule-outlook365.xsd">
+	<error-handler name="global-error-handler"
+		doc:id="42303ee8-1820-42c5-8d3c-cd10e951801d">
+
+		<!-- Swallow DB connection pool timeouts silently. Use on-error-CONTINUE 
+			so the error does not propagate to the ANY handler and trigger an email alert. -->
+		<!-- <on-error-continue type="DB:CONNECTIVITY" logException="false" enableNotifications="false" 
+			doc:name="Suppress DB Pool Timeout"> <logger level="WARN" message='#["DB 
+			connection pool exhausted - skipping. Correlation ID: " ++ (vars.correlationId 
+			default "")]'/> </on-error-continue> -->
+		<on-error-continue type="DB:CONNECTIVITY"
+			logException="false" enableNotifications="false"
+			doc:name="Suppress DB Pool Timeout">
+			<logger level="WARN"
+				message='#[%dw 2.0
 output application/java
 ---
-([error] map (item) -> {
-	"Exception": item.exception.message,
-	"Description" : item.description ,
-	"ErrorType" : item.errorType.identifier
-})]]></ee:set-payload>
+"DB connection pool exhausted - skipping. Correlation ID: " ++ (vars.correlationId default "")]' />
+			<ee:transform
+				doc:name="Reset payload after DB pool timeout">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[]]]></ee:set-payload>
 				</ee:message>
 			</ee:transform>
-			<email:send doc:name="Send" doc:id="4ef65f4c-80df-40fb-bc49-8f98cc3f61b2" config-ref="NTN-SMTP-Details" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;]" subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot; Kind Attention *** Error Alert in  &quot; ++ p('app.name')]">
-				<email:body contentType="text/html" encoding="UTF-8">
-					<email:content ><![CDATA[#[%dw 2.0
-output application/xml
-skipNullOn="everywhere"
+		</on-error-continue>
 
+		<!-- ORA-01013 / query cancelled — suppress email, log only -->
+		<!-- <on-error-continue type="DB:QUERY_EXECUTION" logException="false" 
+			enableNotifications="false" doc:name="Suppress ORA-01013 Query Cancel" when='#[error.description 
+			contains "ORA-01013"]'> <logger level="WARN" message='#[%dw 2.0&#10;output 
+			application/java&#10;-&#45;&#45;&#10;"[global-error-handler] ORA-01013 query 
+			cancelled – suppressed. CorrelationId: " ++ (vars.correlationId default "n/a") 
+			++ " | " ++ (error.description default "")]' /> </on-error-continue> -->
+		<on-error-continue type="DB:QUERY_EXECUTION"
+			logException="false" enableNotifications="false"
+			doc:name="Suppress ORA-01013 Query Cancel"
+			when='#[error.description contains "ORA-01013"]'>
+			<logger level="WARN"
+				message='#[%dw 2.0
+output application/java
+---
+"[global-error-handler] ORA-01013 query cancelled - suppressed. CorrelationId: " ++ (vars.correlationId default "n/a") ++ " | " ++ (error.description default "")]' />
+			<ee:transform doc:name="Reset payload after ORA-01013">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[]]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-continue>
+
+		<!-- All other errors: log + send email alert -->
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="1543b796-2e44-456d-87eb-2bcdc8982439" type="ANY">
+			<ee:transform doc:name="Transform Message"
+				doc:id="c371baa9-9510-4ca1-9493-dd29bb8052cb">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
 ---
 {
-    "html":{
-        "body":{
-            "div" @(class:"total"):{
-                "div" @(class:"header"):{
-                    "h2":"Alert from Mulesoft"
-                },
-                "div" @(class:"content"):{
-                    "p": "Hi,",
-                    "p": "Greetings!!!",
-					"p": "Error while processing, please take corrective action."
-                },
-
-                "div":{
-                    "table" @(width:'40%', border:'1', cellspacing:'0'): {
-							"tr":{
-                                "th": "InterfaceName",
-                                "td": p('app.name')
-                            },
-                          "tr":{
-                                "th": "Error Type",
-                                "td": payload.ErrorType
-                            },
-                          "tr":{
-                                "th": "Error Description",
-                                "td": payload.Description
-                            }                        
-				
-                        }
-                }
-            }
-        }
-    }
-}]]]></email:content>
-				</email:body>
-			</email:send>
-			<logger level="INFO" doc:name="Logger" doc:id="d02f9763-42e3-48c6-a82f-bbe17c30d51b" message='#["Error Email sent"]'/>
+    "Exception"  : error.exception.message default "",
+    "Description": error.description default "",
+    "ErrorType"  : error.errorType.identifier default ""
+}
+//([error] map (item) -> {
+//    "Exception": item.exception.message,
+//    "Description" : item.description,
+//    "ErrorType" : item.errorType.identifier
+//})]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Logger"
+				doc:id="7f806002-ebbc-4ee7-99c4-5e0b3a56e610" message="#[payload]" />
+			<!-- [STUDIO:"Send"]<email:send doc:name="Send" doc:id="587f8d2a-fa08-4a23-a0c3-f53101b9adf1" 
+				config-ref="NTN-SMTP-Details" toAddresses="#[p('smtp.to') splitBy &quot;,&quot;&#93;" 
+				subject="#[&quot;*** E-mail Notification: &quot; ++ p('app.env') ++ &quot; 
+				Kind Attention *** Error Alert in &quot; ++ p('app.name')&#93;"> <email:body 
+				contentType="text/html" encoding="UTF-8"> <email:content><![CDATA[#[%dw 2.0 
+				output application/xml skipNullOn="everywhere" &#45;&#45;- { "html":{ "body":{ 
+				"div" @(class:"total"):{ "div" @(class:"header"):{ "h2":"Alert from Mulesoft" 
+				}, "div" @(class:"content"):{ "p": "Hi,", "p": "Greetings!!!", "p": "Error 
+				while processing, please take corrective action." }, "div":{ "table" @(width:'40%', 
+				border:'1', cellspacing:'0'): { "tr":{ "th": "CorrelationId", "td": vars.correlationId 
+				}, "tr":{ "th": "InterfaceName", "td": p('app.name') }, "tr":{ "th": "Error 
+				Type", "td": payload.ErrorType }, "tr":{ "th": "Error Description", "td": 
+				payload.Description } } } } } } }&#93;&#93;&#93;></email:content> </email:body> 
+				</email:send> [STUDIO] -->
+			<outlook365:send-mail doc:name="Send mail"
+				doc:id="dd3374cf-28b7-4524-883a-d2c006c60f8c"
+				config-ref="Outlook365_Outlook365_Config" userId="${outlook.user}">
+				<outlook365:message><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+   "message": {
+       "subject": "*** E-mail Notification: " ++ (p('app.env') default "ENV") ++ " Kind Attention *** Error Alert in " ++ (p('app.name') default "APP"),
+       "body": {
+           "contentType": "HTML",
+           "content": "
+<html>
+<body>
+<div class='total'>
+<div class='header'>
+<h2>Alert from Mulesoft</h2>
+</div>
+<div class='content'>
+<p>Hi,</p>
+<p>Greetings!!!</p>
+<p>Error while processing, please take corrective action.</p>
+</div>
+<div>
+<table width='40%' border='1' cellspacing='0'>
+<tr>
+<th>CorrelationId</th>
+<td>" ++ (vars.correlationId as String default "N/A") ++ "</td>
+</tr>
+<tr>
+<th>InterfaceName</th>
+<td>" ++ (p('app.name') default "N/A") ++ "</td>
+</tr>
+<tr>
+<th>Error Type</th>
+<td>" ++ (error.ErrorType.identifier as String default "N/A") ++ "</td>
+</tr>
+<tr>
+<th>Error Description</th>
+<td>" ++ (error.Description as String default "N/A") ++ "</td>
+</tr>
+</table>
+</div>
+</div>
+</body>
+</html>"
+       },
+       "toRecipients": (p('smtp.to') splitBy ",") map (addr) -> {
+           "emailAddress": {
+               "address": trim(addr)
+           }
+       },
+   //    "saveToSentItems": true
+   }
+}]]]></outlook365:message>
+			</outlook365:send-mail>
+			<logger level="INFO" doc:name="Logger"
+				doc:id="8c8d637c-fab8-4cc5-8914-ad9222b105b8"
+				message='#["Error Email sent"]' />
 		</on-error-propagate>
+
 	</error-handler>
 </mule>
